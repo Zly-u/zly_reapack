@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="58a3e39ba95bd0f35846aa1f39aa4cb2574295e1">
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="5b62e00c36c9fd9ad35a83ecb9674dbf59ce876b">
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
-        <description>
-<![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -23,11 +22,11 @@ Markdown
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaPack Repository Template\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaPack Repository Template\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A template for GitHub-hosted ReaPack repositories with automated {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index"}}{\fldrslt{\ul
 reapack-index
 }}}
