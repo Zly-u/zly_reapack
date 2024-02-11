@@ -3,34 +3,49 @@
 @author Zly
 @version 1.0
 @provides
-   [main] .
+	[main] .
 @about
-   # Stretch To Next Item
+	# Stretch To Next Item
    
-   - Stretches selected Items to next adjacent item.
+	- Stretches selected Items to next adjacent item.
+@changelog
+	- Init
 --]]
 
+_G._print = print
+_G.print = function(...)
+	local string = ""
+	for _, v in pairs({...}) do
+		string = string .. tostring(v) .. "\t"
+	end
+	reaper.ShowConsoleMsg(string)
+end
+
 function main()
+	local item_count = reaper.CountSelectedMediaItems()
+	if item_count == 0 then return end
+
+	reaper.Undo_BeginBlock()
+	for id = 0, item_count - 2 do
+		local item		= reaper.GetSelectedMediaItem(0, id)
+		local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+
+		local item_start		= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+		local item_duration		= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+		local item_take 		= reaper.GetActiveTake(item)
+		local item_playrate		= reaper.GetMediaItemTakeInfo_Value(item_take, "D_PLAYRATE")
+
+		local next_item_start	= reaper.GetMediaItemInfo_Value(next_item, "D_POSITION")
+
+		local target_duration	= next_item_start - item_start
+		local target_playrate	= item_playrate * (item_duration/target_duration)
+
+		reaper.SetMediaItemLength(item, target_duration, false)
+		reaper.SetMediaItemTakeInfo_Value(item_take, "D_PLAYRATE", target_playrate)
+	end
+	reaper.Undo_EndBlock("Stretch To Next Item", 0)
+
+	reaper.UpdateArrange()
 end
 
 main()
-
---[[
-import reapy
-
-with reapy.inside_reaper():
-    cur_project = reapy.Project()
-    selected_items = cur_project.selected_items
-
-    for item in selected_items:
-        pos = item.position
-        item_tracks_items = item.track.items
-
-        next_item = None
-        for i, searchable_item in enumerate(item_tracks_items):
-            if searchable_item == item and i != len(item_tracks_items)-1:
-                next_item = item_tracks_items[i+1]
-
-        if next_item: item.set_info_value("D_LENGTH", abs(pos - next_item.position))
-
---]]
