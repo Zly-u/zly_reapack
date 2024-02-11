@@ -1,5 +1,4 @@
 --[[
-Metapackage: true
 Description: Extend To Next Item
 Author: Zly
 Provides:

@@ -1,7 +1,6 @@
 --[[
 Description: Stretch To Next Item
 Author: Zly
-Metapackage: true
 Provides:
     [main] StretchToNextItem/Zly_StretchToNextItem.lua
 Links:
