@@ -1,20 +1,17 @@
 --[[
-Description: Stretch To Next Item
-Author: Zly
-Provides:
-    [main] .
-Links:
-    Twitter https://twitter.com/zly_u
-    NAGASHIZAR https://www.youtube.com/@NAGASHIZARr
-Donation: https://boosty.to/zly
-About:
-    # Stretch To Next Item
+@description Stretch To Next Item
+@author Zly
+@version 1.0
+@provides
+	[main] .
+@about
+	# Stretch To Next Item
 
 	- Stretches selected Items to next adjacent item.
-Version: 1.0
-Changelog:
-    - Init
+@changelog
+	- Init
 --]]
+
 
 _G._print = print
 _G.print = function(...)
