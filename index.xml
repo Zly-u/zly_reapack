@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="d49072b954c262d585073bd373ebc6d6a0aeb7c1">
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="f8d2602fe1a97669e3f0d28ef758d0db9f603686">
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
@@ -22,6 +22,22 @@ Markdown
     </reapack>
   </category>
   <category name="Items Editing/StretchToNextItem">
+    <reapack name="Zly_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Extend To Next Item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Extends selected Items to next adjacent item.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Zly" time="2024-02-11T14:25:36Z">
+        <changelog><![CDATA[- Init]]></changelog>
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f8d2602fe1a97669e3f0d28ef758d0db9f603686/Items%20Editing/StretchToNextItem/Zly_ExtendToNextItem.lua</source>
+      </version>
+    </reapack>
     <reapack name="Zly_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
