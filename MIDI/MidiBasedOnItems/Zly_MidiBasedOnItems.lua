@@ -1,14 +1,4 @@
---[[
-@description MIDI Based On Items
-@author Zly
-@version 1.0
-@provides
-   [main] .
-@about
-   # MIDI Based On Items
-   
-   - Creates MIDI based on selected items pitches.
---]]
+-- @noindex
 
 function main()
 end
