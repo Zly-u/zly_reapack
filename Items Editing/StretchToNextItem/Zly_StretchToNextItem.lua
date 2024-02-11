@@ -1,6 +1,6 @@
 --[[
 @noindex
---]]
+]]--
 
 
 _G._print = print
