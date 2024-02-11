@@ -4,7 +4,7 @@
 @author Zly
 @version 1.0
 @provides
-	[main] ExtendToNextItem\Zly_ExtendToNextItem.lua
+	[main] .\ExtendToNextItem\Zly_ExtendToNextItem.lua
 @about
 	# Extend To Next Item
 
