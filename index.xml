@@ -1,26 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="c38f513885db69b5b373abdb50cfa4bc5813a717">
-  <category name="Example">
-    <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 This is an example of a package file. It installs itself as a ReaScript that does nothing but show "Hello World!" in REAPER's scripting console.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Packages may also include additional files specified using the @provides tag.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This text is the documentation shown when using ReaPack's "About this package" feature. {\field{\*\fldinst{HYPERLINK "https://commonmark.org/"}}{\fldrslt{\ul
-Markdown
-}}}
- {\i formatting} is supported.\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="cfillion" time="2024-02-10T20:56:34Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/5b62e00c36c9fd9ad35a83ecb9674dbf59ce876b/Example/cfillion_Hello%20world.lua</source>
-      </version>
-    </reapack>
-  </category>
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="d61071bda57491139a0b54f7f58dc316ba927707">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -55,8 +34,8 @@ Markdown
       </version>
     </reapack>
   </category>
-  <category name="MIDI/MidiBasedOnItems">
-    <reapack name="Zly_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
+  <category name="MIDI">
+    <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -67,28 +46,27 @@ Markdown
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T02:11:47Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/MIDI/MidiBasedOnItems/Zly_MidiBasedOnItems.lua</source>
+      <version name="1.0" author="Zly" time="2024-02-11T21:34:35Z">
+        <changelog><![CDATA[- Init]]></changelog>
+        <source main="main" file="MidiBasedOnItems/Zly_MidiBasedOnItems.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d61071bda57491139a0b54f7f58dc316ba927707/MIDI/MidiBasedOnItems/Zly_MidiBasedOnItems.lua</source>
       </version>
     </reapack>
   </category>
-  <category name="Video/VideoAutoFlipper">
-    <reapack name="Zly_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper">
+  <category name="Video">
+    <reapack name="meta_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Video Auto-Flipper\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a handy GUI and other featues for ease of simple YTPMV making.\sa180\par}
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T02:11:47Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
-        <source file="VAF_GUI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Video/VideoAutoFlipper/VAF_GUI.lua</source>
-        <source file="VAF_CORE.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Video/VideoAutoFlipper/VAF_CORE.lua</source>
+      <version name="1.0" author="Zly" time="2024-02-11T21:34:35Z">
+        <source main="main" file="VideoAutoFlipper/Zly_VideoAutoFlipper.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d61071bda57491139a0b54f7f58dc316ba927707/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
+        <source file="VideoAutoFlipper/VAF_GUI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d61071bda57491139a0b54f7f58dc316ba927707/Video/VideoAutoFlipper/VAF_GUI.lua</source>
+        <source file="VideoAutoFlipper/VAF_CORE.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d61071bda57491139a0b54f7f58dc316ba927707/Video/VideoAutoFlipper/VAF_CORE.lua</source>
       </version>
     </reapack>
   </category>
