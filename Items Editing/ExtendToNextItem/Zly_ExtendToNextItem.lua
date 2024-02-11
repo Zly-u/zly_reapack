@@ -1,6 +1,3 @@
---[[
-@noindex
---]]
 
 function main()
 	local item_count = reaper.CountSelectedMediaItems()

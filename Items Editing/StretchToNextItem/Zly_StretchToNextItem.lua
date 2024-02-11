@@ -1,6 +1,4 @@
---[[
-@noindex
---]]
+
 
 _G._print = print
 _G.print = function(...)
