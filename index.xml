@@ -3,7 +3,7 @@
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -21,48 +21,14 @@ Markdown
       </version>
     </reapack>
   </category>
-  <category name="Items Editing">
-    <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Extend To Next Item\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Extends selected Items to next adjacent item.\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T15:22:39Z">
-        <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="ExtendToNextItem/Zly_ExtendToNextItem.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f4ce00c661dc5f842f45a562d03f91445946dbfb/Items%20Editing/ExtendToNextItem/Zly_ExtendToNextItem.lua</source>
-      </version>
-    </reapack>
-    <reapack name="meta_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Stretch To Next Item\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Stretches selected Items to next adjacent item.\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T15:22:39Z">
-        <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="StretchToNextItem/Zly_StretchToNextItem.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f4ce00c661dc5f842f45a562d03f91445946dbfb/Items%20Editing/StretchToNextItem/Zly_StretchToNextItem.lua</source>
-      </version>
-    </reapack>
-  </category>
   <category name="MIDI/MidiBasedOnItems">
     <reapack name="Zly_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 MIDI Based On Items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI Based On Items\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates MIDI based on selected items pitches.\sa180\par}
 }
 ]]></description>
@@ -75,11 +41,11 @@ Markdown
   <category name="Video/VideoAutoFlipper">
     <reapack name="Zly_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Video Auto-Flipper\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Video Auto-Flipper\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a handy GUI and other featues for ease of simple YTPMV making.\sa180\par}
 }
@@ -93,11 +59,11 @@ Markdown
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 NAGASHIZAR's ReaPack Repository\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 NAGASHIZAR's ReaPack Repository\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A repo of scripts that the members of NAGASHIZAR have made for simplifying and automating their Music/YTPMV workflow.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://www.youtube.com/@NAGASHIZARr"}}{\fldrslt{\ul
 NAGASHIZAR YT
