@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="c2f4a5910beacc25a664c4aea432039f55fc615d">
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="c38f513885db69b5b373abdb50cfa4bc5813a717">
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
@@ -18,41 +18,6 @@ Markdown
       </metadata>
       <version name="1.0" author="cfillion" time="2024-02-10T20:56:34Z">
         <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/5b62e00c36c9fd9ad35a83ecb9674dbf59ce876b/Example/cfillion_Hello%20world.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Items Editing/ExtendToNextItem">
-    <reapack name="Zly_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Extend To Next Item\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Extends selected Items to next adjacent item.\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T14:26:51Z">
-        <changelog><![CDATA[- Init]]></changelog>
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/c2f4a5910beacc25a664c4aea432039f55fc615d/Items%20Editing/ExtendToNextItem/Zly_ExtendToNextItem.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Items Editing/StretchToNextItem">
-    <reapack name="Zly_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Stretch To Next Item\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Stretches selected Items to next adjacent item.\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T02:11:47Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Items%20Editing/StretchToNextItem/Zly_StretchToNextItem.lua</source>
       </version>
     </reapack>
   </category>
