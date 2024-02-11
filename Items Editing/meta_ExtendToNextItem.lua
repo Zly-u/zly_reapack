@@ -2,7 +2,8 @@
 Description: Extend To Next Item
 Author: Zly
 Provides:
-    [main] ExtendToNextItem/Zly_ExtendToNextItem.lua
+    [main] .
+    [nomain] ExtendToNextItem/Zly_ExtendToNextItem.lua
 Links:
     Twitter https://twitter.com/zly_u
     NAGASHIZAR https://www.youtube.com/@NAGASHIZARr
