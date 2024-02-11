@@ -1,6 +1,20 @@
 -- @noindex
 
 function main()
+	local item_count = reaper.CountSelectedMediaItems()
+	if item_count == 0 then return end
+
+	reaper.Undo_BeginBlock()
+	for id = 0, item_count - 1 do
+		local item			= reaper.GetSelectedMediaItem(0, id)
+		local item_start	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+		local item_duration	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+		local item_take 	= reaper.GetActiveTake(item)
+
+	end
+	reaper.Undo_EndBlock("MIDI Based on Items", 0)
+
+	reaper.UpdateArrange()
 end
 
 main()

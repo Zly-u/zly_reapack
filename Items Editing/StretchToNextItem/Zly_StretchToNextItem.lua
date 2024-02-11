@@ -1,16 +1,4 @@
---[[
-@noindex
-]]--
-
-
-_G._print = print
-_G.print = function(...)
-	local string = ""
-	for _, v in pairs({...}) do
-		string = string .. tostring(v) .. "\t"
-	end
-	reaper.ShowConsoleMsg(string)
-end
+-- @noindex
 
 function main()
 	local item_count = reaper.CountSelectedMediaItems()
