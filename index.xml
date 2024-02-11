@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="740b8aae0b669d168d0ec3e6896eb423c5de1364">
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="b82ace6644bbdbbc4a87d31d51e47e5d549b2445">
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -24,11 +24,12 @@ Markdown
   <category name="MidiBasedOnItems">
     <reapack name="Zly_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Creates MIDI based on selected items pitches.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI Based On Items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates MIDI based on selected items pitches.\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -40,11 +41,12 @@ Markdown
   <category name="StretchToNextItem">
     <reapack name="Zly_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Stretches selected Items to next adjacent item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Stretch To Next Item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Stretches selected Items to next adjacent item.\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -56,11 +58,11 @@ Markdown
   <category name="VideoAutoFlipper">
     <reapack name="Zly_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Video Auto-Flipper\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Video Auto-Flipper\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a handy GUI and other featues for ease of simple YTPMV making.\sa180\par}
 }
@@ -74,11 +76,11 @@ Markdown
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaPack Repository Template\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaPack Repository Template\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A template for GitHub-hosted ReaPack repositories with automated {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index"}}{\fldrslt{\ul
 reapack-index
 }}}
