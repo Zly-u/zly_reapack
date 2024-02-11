@@ -1,0 +1,14 @@
+@metapackage
+
+@description Video Auto-Flipper
+@author Zly
+@version 1.0
+@provides
+    [main] Zly_VideoAutoFlipper.lua
+    GUI_VAF.lua
+    CORE_VAF.lua
+@about
+    # Video Auto-Flipper
+    
+    - Flips selected items.
+    - Has a handy GUI and other featues for ease of simple YTPMV making.
