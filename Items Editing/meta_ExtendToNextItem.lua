@@ -1,7 +1,7 @@
 --[[
+Metapackage: true
 Description: Extend To Next Item
 Author: Zly
-Metapackage: true
 Provides:
     [main] ExtendToNextItem/Zly_ExtendToNextItem.lua
 Links:
