@@ -1,3 +1,20 @@
+--[[
+Description: Extend To Next Item
+Author: Zly
+Provides:
+    [main] .
+Links:
+    Twitter https://twitter.com/zly_u
+    NAGASHIZAR https://www.youtube.com/@NAGASHIZARr
+Donation: https://boosty.to/zly
+About:
+    # Extend To Next Item
+
+	- Extends selected Items to next adjacent item.
+Version: 1.0
+Changelog:
+    - Init
+--]]
 
 function main()
 	local item_count = reaper.CountSelectedMediaItems()
