@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="5b62e00c36c9fd9ad35a83ecb9674dbf59ce876b">
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="740b8aae0b669d168d0ec3e6896eb423c5de1364">
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
@@ -16,8 +16,60 @@ Markdown
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="cfillion" time="2021-01-04T23:30:32Z">
-        <source main="main">https://github.com/cfillion/reapack-repository-template/raw/58a3e39ba95bd0f35846aa1f39aa4cb2574295e1/Example/cfillion_Hello%20world.lua</source>
+      <version name="1.0" author="cfillion" time="2024-02-10T20:56:34Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/5b62e00c36c9fd9ad35a83ecb9674dbf59ce876b/Example/cfillion_Hello%20world.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="MidiBasedOnItems">
+    <reapack name="Zly_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Creates MIDI based on selected items pitches.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Zly" time="2024-02-10T23:33:52Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/dc7de39846f7baebd70008a9a58bc6d26a547aa8/MidiBasedOnItems/Zly_MidiBasedOnItems.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="StretchToNextItem">
+    <reapack name="Zly_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Stretches selected Items to next adjacent item.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Zly" time="2024-02-10T23:33:52Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/dc7de39846f7baebd70008a9a58bc6d26a547aa8/StretchToNextItem/Zly_StretchToNextItem.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="VideoAutoFlipper">
+    <reapack name="Zly_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Video Auto-Flipper\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a handy GUI and other featues for ease of simple YTPMV making.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Zly" time="2024-02-11T01:53:29Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/740b8aae0b669d168d0ec3e6896eb423c5de1364/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
+        <source file="VAF_GUI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/740b8aae0b669d168d0ec3e6896eb423c5de1364/VideoAutoFlipper/VAF_GUI.lua</source>
+        <source file="VAF_CORE.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/740b8aae0b669d168d0ec3e6896eb423c5de1364/VideoAutoFlipper/VAF_CORE.lua</source>
       </version>
     </reapack>
   </category>
@@ -51,5 +103,6 @@ https://github.com/{\f1 <your username>}/{\f1 <repository name>}/raw/master/inde
 .\par}
 }
 ]]></description>
+    <link rel="website">https://www.youtube.com/@NAGASHIZARr</link>
   </metadata>
 </index>
