@@ -1,8 +1,19 @@
--- @description MIDI Based On Items
--- @author Zly
--- @version 1.0
--- @about
---   Creates MIDI based on selected items pitches.
+--[[
+@description MIDI Based On Items
+@author Zly
+@version 1.0
+@provides
+   [main] .
+@about
+   # MIDI Based On Items
+   
+   - Creates MIDI based on selected items pitches.
+--]]
+
+function main()
+end
+
+main()
 
 --[[
 import reapy
