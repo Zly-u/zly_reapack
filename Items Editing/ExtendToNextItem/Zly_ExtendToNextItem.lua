@@ -1,16 +1,7 @@
 --[[
-@description Extend To Next Item
-@author Zly
-@version 1.0
-@provides
-	[main] .
-@about
-	# Extend To Next Item
-   
-	- Extends selected Items to next adjacent item.
-@changelog
-	- Init
---]]
+@noindex
+]]--
+
 
 function main()
 	local item_count = reaper.CountSelectedMediaItems()
