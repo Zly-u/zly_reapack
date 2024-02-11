@@ -4,7 +4,7 @@
 @author Zly
 @version 1.0
 @provides
-	[main] StretchToNextItem/Zly_StretchToNextItem.lua
+	[main] StretchToNextItem\Zly_StretchToNextItem.lua
 @about
 	# Stretch To Next Item
 
