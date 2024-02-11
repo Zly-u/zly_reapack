@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR ReaPack Repository" commit="b82ace6644bbdbbc4a87d31d51e47e5d549b2445">
+<index version="1" name="NAGASHIZAR ReaPack Repository" commit="d49072b954c262d585073bd373ebc6d6a0aeb7c1">
   <category name="Example">
     <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
       <metadata>
@@ -21,24 +21,7 @@ Markdown
       </version>
     </reapack>
   </category>
-  <category name="MidiBasedOnItems">
-    <reapack name="Zly_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI Based On Items\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates MIDI based on selected items pitches.\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="Zly" time="2024-02-10T23:33:52Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/dc7de39846f7baebd70008a9a58bc6d26a547aa8/MidiBasedOnItems/Zly_MidiBasedOnItems.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="StretchToNextItem">
+  <category name="Items Editing/StretchToNextItem">
     <reapack name="Zly_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -50,12 +33,29 @@ Markdown
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="Zly" time="2024-02-10T23:33:52Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/dc7de39846f7baebd70008a9a58bc6d26a547aa8/StretchToNextItem/Zly_StretchToNextItem.lua</source>
+      <version name="1.0" author="Zly" time="2024-02-11T02:11:47Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Items%20Editing/StretchToNextItem/Zly_StretchToNextItem.lua</source>
       </version>
     </reapack>
   </category>
-  <category name="VideoAutoFlipper">
+  <category name="MIDI/MidiBasedOnItems">
+    <reapack name="Zly_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI Based On Items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates MIDI based on selected items pitches.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Zly" time="2024-02-11T02:11:47Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/MIDI/MidiBasedOnItems/Zly_MidiBasedOnItems.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Video/VideoAutoFlipper">
     <reapack name="Zly_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -68,10 +68,10 @@ Markdown
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T01:53:29Z">
-        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/740b8aae0b669d168d0ec3e6896eb423c5de1364/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
-        <source file="VAF_GUI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/740b8aae0b669d168d0ec3e6896eb423c5de1364/VideoAutoFlipper/VAF_GUI.lua</source>
-        <source file="VAF_CORE.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/740b8aae0b669d168d0ec3e6896eb423c5de1364/VideoAutoFlipper/VAF_CORE.lua</source>
+      <version name="1.0" author="Zly" time="2024-02-11T02:11:47Z">
+        <source main="main">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
+        <source file="VAF_GUI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Video/VideoAutoFlipper/VAF_GUI.lua</source>
+        <source file="VAF_CORE.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d49072b954c262d585073bd373ebc6d6a0aeb7c1/Video/VideoAutoFlipper/VAF_CORE.lua</source>
       </version>
     </reapack>
   </category>
