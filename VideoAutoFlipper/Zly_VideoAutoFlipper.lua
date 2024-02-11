@@ -1,7 +1,8 @@
--- @version 1.0
+-- @noindex
 
-local core  = require("CORE_VAF")
-local gui   = require("GUI_VAF")
+
+local core  = require("VAF_CORE")
+local gui   = require("VAF_GUI")
 
 
 reaper.ShowConsoleMsg("Test")
