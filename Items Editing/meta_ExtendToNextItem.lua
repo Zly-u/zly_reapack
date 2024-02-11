@@ -1,3 +1,4 @@
+--[[
 @metapackage
 @description Extend To Next Item
 @author Zly
@@ -10,3 +11,4 @@
 	- Extends selected Items to next adjacent item.
 @changelog
 	- Init
+--]]
