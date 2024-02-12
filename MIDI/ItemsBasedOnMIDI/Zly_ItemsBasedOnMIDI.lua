@@ -45,26 +45,16 @@ local function printTable(t, show_details)
 
 	if type(t) == "table" then
 		print((show_details and tostring(t)..": " or "").."{")
-		sub_printTable(t, "  ")
+		sub_printTable(t, "\t")
 		print("}")
 	else
-		sub_printTable(t, "  ")
+		sub_printTable(t, "\t")
 	end
 end
 
 
-local notes = {
-	--[[
-	[1] = {1, 2, 3, 4},
-	[2] = {5},
-	[3] = {6, 7, {8, 9}, 10},
-	--]]
-}
-
-local items = {
-
-}
-
+local chords = {}
+local items = {}
 local tracks = {}
 
 local function GetNoteData(take, _id)
@@ -116,8 +106,9 @@ function main()
 	for id = 0, notes_num - 1 do
 		local current_note = GetNoteData(midi_take, id)
 
-		-- Go through all notes in the chord set
+		-- Go through all notes in the chord set (if not empty)
 		local chord_note_index = 1
+		local found_overlap = false
 		while chord_note_index <= #current_chord do
 			local chord_note = current_chord[chord_note_index]
 
@@ -125,20 +116,27 @@ function main()
 				local isNote_after_start = current_note.start_pos >= chord_note.start_pos
 				local isNote_before_end  = current_note.start_pos <  chord_note.end_pos
 
-				-- If the note not overlaps - make a new chord set
-				if not (isNote_after_start and isNote_before_end) then
+				-- If the note overlaps - we continue constructing chord set
+				if isNote_after_start and isNote_before_end then
+					table.insert(current_chord, current_note)
+
 					if #current_chord > max_concurrent_notes then
 						max_concurrent_notes = #current_chord
 					end
 
-					table.insert(notes, current_chord)
-					current_chord = {}
+					found_overlap = true
+
 					break
 				end
-				table.insert(current_chord, current_note)
 			end
 
 			chord_note_index = chord_note_index + 1
+		end
+
+		-- else we make a new chord set
+		if not found_overlap and #current_chord > 0 then
+			table.insert(chords, current_chord)
+			current_chord = {}
 		end
 
 		if #current_chord == 0 then
@@ -146,9 +144,10 @@ function main()
 		end
 	end
 
-	table.insert(notes, current_chord)
+	table.insert(chords, current_chord)
 
-	printTable(notes)
+	printTable(chords)
+	print(max_concurrent_notes)
 
 
 	-- TODO: New Tracks
