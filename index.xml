@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="952f013ca9e5b4807117ef3e9005259d99b7d0ee">
+<index version="1" name="NAGASHIZAR" commit="2c1f1b0ed6f5cdd208a94ee4a0dc3fe6bd8859fa">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -42,13 +42,19 @@
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Items Based On MIDI\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Items based on selected MIDI.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Items based on selected MIDI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each of the item's pitch is based off the first note in the MIDI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inherits Volume from midi as well.\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Zly" time="2024-02-12T11:20:31Z">
         <changelog><![CDATA[- Init]]></changelog>
         <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/9b239de6a3bddc3e1d74a99c7157d2abba4bc923/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
+      </version>
+      <version name="1.1" author="Zly" time="2024-02-12T19:24:05Z">
+        <changelog><![CDATA[- Added proper support for Chords and overlapping by time notes]]></changelog>
+        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/b1f233d9f480064e484a00237a479615907cb1d6/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
       </version>
     </reapack>
     <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
