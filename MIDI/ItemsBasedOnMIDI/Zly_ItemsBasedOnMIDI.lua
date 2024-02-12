@@ -1,60 +1,6 @@
 -- @noindex
 
-_G._print = print
-_G.print = function(...)
-	local string = ""
-	for _, v in pairs({...}) do
-		string = string .. tostring(v) .. "\t"
-	end
-	string = string.."\n"
-	reaper.ShowConsoleMsg(string)
-end
-
-local function printTable(t, show_details)
-	show_details = show_details or false
-	local printTable_cache = {}
-
-	local function sub_printTable(_t, indent, indenty)
-		indenty = indenty or indent
-
-		if printTable_cache[tostring(_t)] then
-			print(indenty .. "*" .. (show_details and tostring(_t) or ""))
-			return
-		end
-
-
-		printTable_cache[tostring(_t)] = true
-		if type(_t) ~= "table" then
-			print(indenty..(show_details and tostring(_t) or ""))
-			return
-		end
-
-
-		for key, val in pairs(_t) do
-			if type(val) == "table" then
-				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
-				sub_printTable(val, indenty, indenty..indent)
-				print(indenty .. "}")
-			elseif type(val) == "string" then
-				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
-			else
-				print(indenty .. "[" .. key .. "] => " .. tostring(val))
-			end
-		end
-	end
-
-	if type(t) == "table" then
-		print((show_details and tostring(t)..": " or "").."{")
-		sub_printTable(t, "\t")
-		print("}")
-	else
-		sub_printTable(t, "\t")
-	end
-end
-
-
 local chords = {}
-local items = {}
 local tracks = {}
 
 local function GetNoteData(take, _id)
@@ -100,7 +46,10 @@ function main()
 	local _, track_name = reaper.GetTrackName(midi_track)
 	local track_index	= reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
 
-	-- TODO: Detecting overlapping notes
+	--[[============================================]]--
+	--[[============================================]]--
+
+	-- Detecting overlapping notes
 	local max_concurrent_notes = 1
 	local current_chord		= {}
 	for id = 0, notes_num - 1 do
@@ -144,44 +93,92 @@ function main()
 		end
 	end
 
+	-- Insert the last set.
 	table.insert(chords, current_chord)
 
-	printTable(chords)
-	print(max_concurrent_notes)
+	--[[============================================]]--
+	--[[============================================]]--
 
+	                 -- Intermission --
+	--   I hate how big this whole algorithm already  --
+	--      but i'm lazy to think smart about it	  --
+	--             at least it should work			  --
 
-	-- TODO: New Tracks
-	--reaper.InsertTrackAtIndex(track_index - 1, true)
-	--local new_items_track = reaper.GetTrack(0, track_index - 1)
-	--reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", track_name..(track_name ~= "" and "_" or "").."ITEMS", true)
+	--[[============================================]]--
+	--[[============================================]]--
 
-	-- TODO: Adapt
-	--local first_base_pitch = 0
-	--for id = 0, notes_num - 1 do
-	--	local _, _, muted, start_ppq_pos, end_ppq_pos, _, pitch, vel = reaper.MIDI_GetNote(midi_take, id)
-	--	if muted then
-	--		goto continue
-	--	end
-	--
-	--	if id == 0 then
-	--		first_base_pitch = pitch
-	--	end
-	--
-	--	local new_item		= reaper.AddMediaItemToTrack(new_items_track)
-	--	local new_item_take = reaper.AddTakeToMediaItem(new_item)
-	--
-	--	reaper.SetMediaItemInfo_Value(new_item, "D_VOL", vel/127.0)
-	--	reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", pitch - first_base_pitch)
-	--	reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
-	--
-	--	local start_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, start_ppq_pos)
-	--	local end_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, end_ppq_pos)
-	--
-	--	reaper.SetMediaItemPosition(new_item, start_pos, false)
-	--	reaper.SetMediaItemLength(new_item, end_pos-start_pos, false)
-	--
-	--	::continue::
-	--end
+	for _, chord in pairs(chords) do
+		for _, note in pairs(chord) do
+			-- Go through tracks and find valid position
+			local track_search_index = 1
+			while true do
+				local found_track = tracks[track_search_index]
+
+				-- If next track to check for valid positions
+				-- doesn't exist then we make it
+				if found_track == nil then
+					reaper.InsertTrackAtIndex(track_index - 1, true)
+					local new_items_track = reaper.GetTrack(0, track_index - 1)
+					reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", track_name..(track_name ~= "" and "_" or "").."ITEMs", true)
+
+					table.insert(
+						tracks, {
+							track = new_items_track,
+							items = {} -- notes
+						}
+					)
+					found_track = tracks[track_search_index]
+
+					-- can append note right away
+					table.insert(found_track.items, note)
+					break
+				end
+
+				-- Check if it overlaps with anything
+				-- it better damn not be >:C
+				local isOverlaping = false
+				for _, item in pairs(found_track.items) do
+					local isAtStart = note.start_pos >= item.start_pos
+					local isBeforeEnd = note.start_pos < item.end_pos
+					if isAtStart and isBeforeEnd then
+						isOverlaping = true
+						break
+					end
+				end
+
+				if not isOverlaping then
+					table.insert(found_track.items, note)
+					break
+				end
+				-- else: continue the search for a free spot
+
+				track_search_index = track_search_index + 1
+			end
+		end
+	end
+
+	-- Create the items
+	for _, track in pairs(tracks) do
+		local first_base_pitch = 0
+		for note_index, note in pairs(track.items) do
+			if note_index == 1 then
+				first_base_pitch = note.pitch
+			end
+
+			local new_item		= reaper.AddMediaItemToTrack(track.track)
+			local new_item_take = reaper.AddTakeToMediaItem(new_item)
+
+			reaper.SetMediaItemInfo_Value(new_item, "D_VOL", note.vel/127.0)
+			reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", note.pitch - first_base_pitch)
+			reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
+
+			local start_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.start_pos)
+			local end_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.end_pos)
+
+			reaper.SetMediaItemPosition(new_item, start_pos, false)
+			reaper.SetMediaItemLength(new_item, end_pos-start_pos, false)
+		end
+	end
 
 	reaper.Undo_EndBlock("Items Based on MIDI", 0)
 	reaper.UpdateArrange()

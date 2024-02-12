@@ -10,6 +10,7 @@
 
 	- Creates Items based on selected MIDI.
 	- Each of the item's pitch is based off the first note in the MIDI.
+	- Inherits Volume from midi as well.
 @changelog
 	- Added proper support for Chords and overlapping by time notes
 --]]
