@@ -35,6 +35,8 @@ function main()
 	-- Just trying to make a Track adjacent to our original track of selected items
 	local midi_item	= reaper.GetSelectedMediaItem(0, 0)
 	local midi_take = reaper.GetActiveTake(midi_item)
+	reaper.MIDI_Sort(midi_take)
+
 	local _, notes_num, _, _ = reaper.MIDI_CountEvts(midi_take)
 
 	if not reaper.TakeIsMIDI(midi_take) then
@@ -119,10 +121,11 @@ function main()
 				if found_track == nil then
 					reaper.InsertTrackAtIndex(track_index - 1, true)
 					local new_items_track = reaper.GetTrack(0, track_index - 1)
+					track_index = track_index + 1
 					reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", track_name..(track_name ~= "" and "_" or "").."ITEMs", true)
 
 					table.insert(
-						tracks, {
+						tracks,{
 							track = new_items_track,
 							items = {} -- notes
 						}
@@ -157,14 +160,20 @@ function main()
 		end
 	end
 
-	-- Create the items
-	for _, track in pairs(tracks) do
-		local first_base_pitch = 0
-		for note_index, note in pairs(track.items) do
-			if note_index == 1 then
+	-- Detect the lowest pitch in the first potential chord
+	local first_base_pitch = 127
+	if #chords[1] > 1 then
+		for _, note in pairs(chords[1]) do
+			if note.pitch < first_base_pitch then
 				first_base_pitch = note.pitch
 			end
-
+		end
+	else
+		first_base_pitch = chords[1][1].pitch
+	end
+	-- Create the items
+	for _, track in pairs(tracks) do
+		for _, note in pairs(track.items) do
 			local new_item		= reaper.AddMediaItemToTrack(track.track)
 			local new_item_take = reaper.AddTakeToMediaItem(new_item)
 
