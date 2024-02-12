@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="2c1f1b0ed6f5cdd208a94ee4a0dc3fe6bd8859fa">
+<index version="1" name="NAGASHIZAR" commit="5846ed3c8fd782c63fce50c41b0de73ba5d1c05e">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -55,6 +55,11 @@
       <version name="1.1" author="Zly" time="2024-02-12T19:24:05Z">
         <changelog><![CDATA[- Added proper support for Chords and overlapping by time notes]]></changelog>
         <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/b1f233d9f480064e484a00237a479615907cb1d6/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
+      </version>
+      <version name="1.1.1" author="Zly" time="2024-02-12T22:11:51Z">
+        <changelog><![CDATA[- Reversed tracks to more or less represent the midi.
+- Made it so all the notes refer the very first note in the track]]></changelog>
+        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/90b66627147dce585ba1426a2f56e089d6bab5f9/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
       </version>
     </reapack>
     <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
