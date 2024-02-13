@@ -1,12 +1,112 @@
 -- @noindex
 
-local chords = {}
+local function get_script_path()
+	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
+	return filename:match("^(.*)[\\/](.-)$")
+end
+local function add_to_package_path(subpath)
+	package.path = subpath .. "/?.lua;" .. package.path
+end
+add_to_package_path(get_script_path())
 
+--[[===================================================]]--
+
+local ImGui = {}
+for name, func in pairs(reaper) do
+	name = name:match('^ImGui_(.+)$')
+	if name then ImGui[name] = func end
+end
+local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
+--[[===================================================]]--
+
+_G._print = print
+_G.print = function(...)
+	local string = ""
+	for _, v in pairs({...}) do
+		string = string .. tostring(v) .. "\t"
+	end
+	string = string.."\n"
+	reaper.ShowConsoleMsg(string)
+end
+
+--[[===================================================]]--
+
+local function printTable(t, show_details)
+	show_details = show_details or false
+	local printTable_cache = {}
+
+	local function sub_printTable(_t, indent, indenty)
+		indenty = indenty or indent
+
+		if printTable_cache[tostring(_t)] then
+			print(indenty .. "*" .. tostring(_t))
+			return
+		end
+
+
+		printTable_cache[tostring(_t)] = true
+		if type(_t) ~= "table" then
+			print(indenty..(show_details and tostring(_t) or ""))
+			return
+		end
+
+
+		for key, val in pairs(_t) do
+			if type(val) == "table" then
+				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
+				sub_printTable(val, indent, indenty..indent)
+				print(indenty .. "}")
+			elseif type(val) == "string" then
+				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
+			else
+				print(indenty .. "[" .. key .. "] => " .. tostring(val))
+			end
+		end
+	end
+
+	if type(t) == "table" then
+		print((show_details and tostring(t)..": " or "").."{")
+		sub_printTable(t, "\t")
+		print("}")
+	else
+		sub_printTable(t, "\t")
+	end
+end
+
+
+--[[===================================================]]--
+
+local async = require("async")
+local demo = require("demo")
+
+local M2I = {
+	widget = {
+		CHB_inherit_vol_click	= false,
+		CHB_inherit_vol			= false,
+		-------------------------------------
+		midi_notes_num					= 0,
+		midi_notes_read					= 0,
+		midi_notes_channel_destribute	= 0,
+
+		midi_progress_string = "%d/%d",
+
+		midi_load_progress = 0.0,
+		-------------------------------------
+	}
+}
+
+local version = "2.0"
+local chords = {}
 local channel_tracks = {}
+local n_channels = 0
+local track_index = -1
 
 -- TODO: UI
---		TODO: Generation Progress
 --  	TODO: General info about selected MIDI
+--		TODO: Load data button
+--			TODO: Load progress
+--  	TODO: Ability to pick source per channel
+--		TODO: Generation Progress
 
 local function hsl2rgb(H, S, L)
 	local C = (1-math.abs((2*L)-1))*S
@@ -62,30 +162,15 @@ local function GetNoteData(take, _id)
 	}
 end
 
-function main()
+local function ProcessMIDI(midi_item, midi_take)
 	reaper.ClearConsole()
-	local item_count = reaper.CountSelectedMediaItems()
-	if item_count == 0 then
-		reaper.MB("No MIDI was selected", "Error", 0)
-		return
-	end
 
-	reaper.Undo_BeginBlock()
-
-	-- Just trying to make a Track adjacent to our original track of selected items
-	local midi_item	= reaper.GetSelectedMediaItem(0, 0)
-	local midi_take = reaper.GetActiveTake(midi_item)
 	reaper.MIDI_Sort(midi_take)
-
 	local _, notes_num, _, _ = reaper.MIDI_CountEvts(midi_take)
-
-	if not reaper.TakeIsMIDI(midi_take) then
-		reaper.MB("The selected Item is not a MIDI", "Error", 0)
-		return
-	end
+	M2I.widget.midi_notes_num = notes_num
 
 	local midi_track	= reaper.GetMediaItemTrack(midi_item)
-	local track_index	= reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
+	track_index			= reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
 
 	--[[============================================]]--
 	--[[============================================]]--
@@ -132,6 +217,7 @@ function main()
 		if #current_chord == 0 then
 			table.insert(current_chord, current_note)
 		end
+		M2I.widget.midi_notes_read = M2I.widget.midi_notes_read + 1
 	end
 
 	-- Insert the last set.
@@ -149,7 +235,7 @@ function main()
 	--[[============================================]]--
 	--[[============================================]]--
 
-	local n_channels = 0
+	n_channels = 0
 	for _, chord in pairs(chords) do
 		for _, note in pairs(chord) do
 			-- Go through tracks and find valid position
@@ -159,21 +245,15 @@ function main()
 
 				-- Create group track for a channel if doesn't exist already
 				if found_channel_track == nil then
-					reaper.InsertTrackAtIndex(track_index - 1, true)
-					local new_group_track = reaper.GetTrack(0, track_index - 1)
-					reaper.GetSetMediaTrackInfo_String(new_group_track, "P_NAME", "CHANNEL_"..tostring(note.channel), true)
-					reaper.SetMediaTrackInfo_Value(new_group_track, "I_FOLDERDEPTH", 0)
-
 					channel_tracks[note.channel] = {
 						channel = note.channel,
-						group_track = new_group_track,
+						group_track = nil, --new_group_track,
 						tracks = {}
 					}
 
 					found_channel_track = channel_tracks[note.channel]
 
 					n_channels = n_channels + 1
-					track_index = track_index + 1
 				end
 
 				local found_notes_track = found_channel_track.tracks[track_search_index]
@@ -181,16 +261,10 @@ function main()
 				-- If next track to check for valid positions
 				-- doesn't exist then we make it
 				if found_notes_track == nil then
-					local channel_track_index = reaper.GetMediaTrackInfo_Value(found_channel_track.group_track, "IP_TRACKNUMBER")
-					reaper.InsertTrackAtIndex(channel_track_index, true)
-					local new_items_track = reaper.GetTrack(0, channel_track_index)
-					reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", "Ch_"..tostring(note.channel).." - ITEMS", true)
-					reaper.SetMediaTrackInfo_Value(new_items_track, "I_FOLDERDEPTH", 0)
-
 					table.insert(
 						found_channel_track.tracks,{
 							parent = found_channel_track,
-							track  = new_items_track,
+							track  = nil, --new_items_track,
 							items  = {} -- notes
 						}
 					)
@@ -198,8 +272,6 @@ function main()
 
 					-- can append note right away
 					table.insert(found_notes_track.items, note)
-
-					track_index = track_index + 1
 					break
 				end
 
@@ -223,6 +295,7 @@ function main()
 
 				track_search_index = track_search_index + 1
 			end
+			M2I.widget.midi_notes_channel_destribute = M2I.widget.midi_notes_channel_destribute + 1
 		end
 	end
 
@@ -231,11 +304,45 @@ function main()
 
 	-- Sort table
 	table.sort(channel_tracks, function(channelA, channelB)
-		if not channelB or not channelA then return false end
+		if not channelB or not channelA then
+			return false
+		end
 		return channelA.channel < channelB.channel
 	end)
+	--for i = 1, 16 do
+	--	if channel_tracks[i] == nil then
+	--		channel_tracks[i]
+	--	end
+	--end
+end
 
-	--[[============================================]]--
+local function Generate(midi_take)
+	reaper.Undo_BeginBlock()
+
+	for _, channel_track in pairs(channel_tracks) do
+		-- Channel Group Track
+		reaper.InsertTrackAtIndex(track_index - 1, true)
+		local new_group_track = reaper.GetTrack(0, track_index - 1)
+		reaper.GetSetMediaTrackInfo_String(new_group_track, "P_NAME", "CHANNEL_"..tostring(channel_track.channel), true)
+		--reaper.SetMediaTrackInfo_Value(new_group_track, "I_FOLDERDEPTH", 0)
+		channel_track.group_track = new_group_track
+
+		track_index = track_index + 1
+
+		-- Channel Track for Notes
+		for _, channel_note_track in pairs(channel_track.tracks) do
+			local channel_track_index = reaper.GetMediaTrackInfo_Value(channel_track.group_track, "IP_TRACKNUMBER")
+			reaper.InsertTrackAtIndex(channel_track_index, true)
+			local new_items_track = reaper.GetTrack(0, channel_track_index)
+			reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", "Ch_"..tostring(channel_track.channel).." - ITEMS", true)
+			--reaper.SetMediaTrackInfo_Value(new_items_track, "I_FOLDERDEPTH", 0)
+
+			channel_note_track.track = new_items_track
+
+			track_index = track_index + 1
+		end
+	end
+
 	--[[============================================]]--
 
 	-- Make folders
@@ -301,4 +408,212 @@ function main()
 	reaper.UpdateArrange()
 end
 
+
+local function ProcessSelectedMIDI()
+	local midi_count = reaper.CountSelectedMediaItems(0)
+	if item_count == 0 then
+		reaper.MB("No MIDI was selected", "Error", 0)
+		return
+	end
+
+	for i = 0, midi_count - 1 do
+		local midi_item	= reaper.GetSelectedMediaItem(0, i)
+		local midi_take = reaper.GetActiveTake(midi_item)
+		ProcessMIDI(midi_take)
+	end
+end
+
+
+local function LoadSelectedMIDI()
+	chords			= {}
+	channel_tracks	= {}
+
+	local item_count = reaper.CountSelectedMediaItems()
+	if item_count == 0 then
+		reaper.MB("No MIDI was selected", "Error", 0)
+		return
+	end
+
+	local midi_item	= reaper.GetSelectedMediaItem(0, 0)
+	local midi_take = reaper.GetActiveTake(midi_item)
+
+	if not reaper.TakeIsMIDI(midi_take) then
+		reaper.MB("The selected Item is not a MIDI", "Error", 0)
+		return
+	end
+
+	ProcessMIDI(midi_item, midi_take)
+
+	return midi_take
+end
+
+
+--[[==================================================]]--
+--[[==================================================]]--
+--[[==================================================]]--
+
+
+local processed_midi_take = nil
+
+local function UpdateParams()
+	M2I.widget.midi_load_progress 	=
+		M2I.widget.midi_notes_num == 0
+		and 0
+		or (M2I.widget.midi_notes_read + M2I.widget.midi_notes_channel_destribute) / (M2I.widget.midi_notes_num * 2)
+
+	M2I.widget.midi_progress_string =
+		M2I.widget.midi_notes_num == 0
+		and "%0 : 0/0"
+		or ("%%%d : %d/%d"):format(
+				M2I.widget.midi_load_progress * 100,
+				math.floor(M2I.widget.midi_notes_read+M2I.widget.midi_notes_channel_destribute)/2,
+				M2I.widget.midi_notes_num
+		)
+end
+
+local function UI(ctx)
+	ImGui.Text(ctx, "Select a MIDI item and press \"Load MIDI\".")
+
+	--boolean retval, string buf = reaper.ImGui_InputTextWithHint(
+	--			ImGui_Context ctx, string label, string hint, string buf,
+	--			number flags = InputTextFlags_None, ImGui_Function callback = nil)
+	--ImGui.InputTextWithHint(ctx, 'input text (w/ hint)', 'enter text here', widgets.basic.str1)
+
+	--ImGui.SeparatorText(ctx, 'Aquarium')
+	ImGui.Separator(ctx)
+
+	M2I.widget.CHB_inherit_vol_click, M2I.widget.CHB_inherit_vol =
+		ImGui.Checkbox(ctx, "Inherit Volume", M2I.widget.CHB_inherit_vol)
+	ImGui.Separator(ctx)
+
+	--[[=================================]]--
+	--[[============ CHANNELS ===========]]--
+	--[[=================================]]--
+	--	void ImGui.ProgressBar(ImGui_Context ctx, number fraction, number size_arg_w = -FLT_MIN, number size_arg_h = 0.0, string overlay = nil)
+
+	ImGui.ProgressBar(ctx, M2I.widget.midi_load_progress, -FLT_MIN, 0, M2I.widget.midi_progress_string)
+	--ImGui.ProgressBar(ctx, 0.5)
+
+	for i = 1, 16 do
+		if channel_tracks[i] ~= nil then
+			ImGui.Text(ctx, "* Channel "..tostring(channel_tracks[i].channel))
+		else
+			ImGui.Text(ctx, "Channel "..tostring(i))
+		end
+	end
+
+	--[[=================================]]--
+	--[[============= BUTTONS ===========]]--
+	--[[=================================]]--
+
+	ImGui.Separator(ctx)
+
+	if ImGui.Button(ctx, "Load MIDI") then
+		M2I.widget.CHB_inherit_vol = 0
+
+		M2I.widget.midi_notes_num = 0
+		M2I.widget.midi_load_progress = 0
+		M2I.widget.midi_notes_read = 0
+		M2I.widget.midi_notes_channel_destribute = 0
+
+		-- stupid way of return by reference
+		processed_midi_take = nil
+		processed_midi_take = LoadSelectedMIDI()
+	end
+
+	ImGui.SameLine(ctx)
+
+	if ImGui.Button(ctx, "Generate") then
+		if processed_midi_take then
+			Generate(processed_midi_take)
+		end
+	end
+
+	ImGui.SameLine(ctx)
+
+	--ImGui.Separator(ctx)
+
+	ImGui.SameLine(ctx)
+	if ImGui.Button(ctx, "Generate Blank") then
+	end
+end
+
+
+--[[=========================================]]--
+--[[=========================================]]--
+--[[=========================================]]--
+
+
+local function Init()
+
+end
+
+local function SetupUI()
+	local ctx = reaper.ImGui_CreateContext("MIDI -> Items")
+
+	local function LoopUI()
+		local visible, open = reaper.ImGui_Begin(ctx, "MIDI -> Items "..version, true, ImGui.WindowFlags_AlwaysAutoResize())
+		if visible then
+			reaper.defer(UpdateParams())
+			reaper.defer(UI(ctx))
+			reaper.ImGui_End(ctx)
+		end
+
+		-- Continue looping itself
+		if open then
+			reaper.defer(LoopUI)
+		end
+	end
+
+	reaper.defer(LoopUI)
+end
+
+
+--[[===================================================]]--
+--[[===================================================]]--
+--[[===================================================]]--
+
+
+function main()
+	Init()
+	SetupUI()
+end
+
 main()
+
+
+--[[===================================================]]--
+--[[===================================================]]--
+--[[===================================================]]--
+
+-- DEMO --
+
+local ctx = reaper.ImGui_CreateContext("DEMO")
+local function loop()
+	demo.PushStyle(ctx)
+	demo.ShowDemoWindow(ctx)
+	if reaper.ImGui_Begin(ctx, "Dear ImGui Style Editor") then
+		demo.ShowStyleEditor(ctx)
+		reaper.ImGui_End(ctx)
+	end
+	demo.PopStyle(ctx)
+	reaper.defer(loop)
+end
+reaper.defer(loop)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
