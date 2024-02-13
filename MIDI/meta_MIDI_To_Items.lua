@@ -2,9 +2,9 @@
 @metapackage
 @description MIDI -> Items
 @author Zly
-@version 1.2.1
+@version 1.2.2
 @provides
-	[main] .\ItemsBasedOnMIDI\Zly_ItemsBasedOnMIDI.lua
+	[main] .\MIDI_To_Items\Zly_MIDI_To_Items.lua
 @about
 	# Items Based On MIDI
 
@@ -17,9 +17,8 @@
 	1. Select MIDI (Right now works only with one selected MIDI at the time)
 	2. Use the script
 @screenshot
-	Preview https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/ItemsBasedOnMIDI/img_MIDI2Items.png
+	Image Preview https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/ItemsBasedOnMIDI/img_MIDI2Items.png
 @changelog
-	- Renamed script to be more compact with naming
-	- Fixed weird case with Channel 0 not being sorted.
-	- Now channels start from 1, instead of 0.
+	- Fixed sorting when some channels are missing.
+	- Fixed coloring based on the amount of channels.
 --]]
