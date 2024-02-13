@@ -1,6 +1,6 @@
 --[[
 @metapackage
-@description Items -> MIDI
+@description MIDI -> Items
 @author Zly
 @version 1.2.1
 @provides
