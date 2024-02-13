@@ -56,7 +56,7 @@ local function GetNoteData(take, _id)
 		muted		= _muted,
 		start_pos	= _startppqpos,
 		end_pos		= _endppqpos,
-		channel		= _chan,
+		channel		= _chan+1,
 		pitch		= _pitch,
 		vel			= _vel
 	}
