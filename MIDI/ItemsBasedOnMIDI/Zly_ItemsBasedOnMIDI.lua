@@ -149,7 +149,7 @@ function main()
 	--[[============================================]]--
 	--[[============================================]]--
 
-
+	local n_channels = 0
 	for _, chord in pairs(chords) do
 		for _, note in pairs(chord) do
 			-- Go through tracks and find valid position
@@ -172,6 +172,7 @@ function main()
 
 					found_channel_track = channel_tracks[note.channel]
 
+					n_channels = n_channels + 1
 					track_index = track_index + 1
 				end
 
@@ -184,7 +185,6 @@ function main()
 					reaper.InsertTrackAtIndex(channel_track_index, true)
 					local new_items_track = reaper.GetTrack(0, channel_track_index)
 					reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", "Ch_"..tostring(note.channel).." - ITEMS", true)
-					--reaper.SetMediaTrackInfo_Value(new_items_track, "I_FOLDERDEPTH", -1)
 					reaper.SetMediaTrackInfo_Value(new_items_track, "I_FOLDERDEPTH", 0)
 
 					table.insert(
@@ -231,6 +231,7 @@ function main()
 
 	-- Sort table
 	table.sort(channel_tracks, function(channelA, channelB)
+		if not channelB or not channelA then return false end
 		return channelA.channel < channelB.channel
 	end)
 
@@ -238,7 +239,7 @@ function main()
 	--[[============================================]]--
 
 	-- Make folders
-	local color_step = 360.0/#channel_tracks
+	local color_step = 360.0/n_channels
 	for index, ch_track in pairs(channel_tracks) do
 		reaper.SetMediaTrackInfo_Value(ch_track.group_track,		"I_FOLDERDEPTH", 1)
 		reaper.SetMediaTrackInfo_Value(ch_track.tracks[1].track,	"I_FOLDERDEPTH", -1)
