@@ -2,7 +2,7 @@
 @metapackage
 @description Items Based On MIDI
 @author Zly
-@version 1.1.1
+@version 1.2
 @provides
 	[main] .\ItemsBasedOnMIDI\Zly_ItemsBasedOnMIDI.lua
 @about
@@ -12,6 +12,8 @@
 	- Each of the item's pitch is based off the first note in the MIDI.
 	- Inherits Volume from midi as well.
 @changelog
-	- Reversed tracks to more or less represent the midi.
-	- Made it so all the notes refer the very first note in the track
+	- Sorts each note to their corresponding channel.
+	- Makes Groups for each channel.
+	- Sorts the Grouped Tracks.
+	- Colors every Channel Group
 --]]
