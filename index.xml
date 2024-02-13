@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="5846ed3c8fd782c63fce50c41b0de73ba5d1c05e">
+<index version="1" name="NAGASHIZAR" commit="17394926afa75c8b984b383c651256d47b174dd3">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -60,6 +60,13 @@
         <changelog><![CDATA[- Reversed tracks to more or less represent the midi.
 - Made it so all the notes refer the very first note in the track]]></changelog>
         <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/90b66627147dce585ba1426a2f56e089d6bab5f9/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
+      </version>
+      <version name="1.2" author="Zly" time="2024-02-13T16:05:27Z">
+        <changelog><![CDATA[- Sorts each note to their corresponding channel.
+- Makes Groups for each channel.
+- Sorts the Grouped Tracks.
+- Colors every Channel Group]]></changelog>
+        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/6cd0cc33aa9602848ebd9604a9a56ea2ba876d10/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
       </version>
     </reapack>
     <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="MIDI Based On Items">
