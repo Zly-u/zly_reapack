@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="7e0e28b68a08a5e9af8e625c0023c370f981eef6">
+<index version="1" name="NAGASHIZAR" commit="52a5ca3ccae8f22e2a8e50d10122c0fe2765039a">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -35,7 +35,7 @@
     </reapack>
   </category>
   <category name="MIDI">
-    <reapack name="meta_ItemsBasedOnMIDI.lua" type="script" desc="Items -&gt; MIDI">
+    <reapack name="meta_ItemsBasedOnMIDI.lua" type="script" desc="MIDI -&gt; Items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -80,7 +80,7 @@
         <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/9010e6190a5adac3cc5097fd636587db92f08333/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
       </version>
     </reapack>
-    <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="MIDI -&gt; Items">
+    <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="Items -&gt; MIDI">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
