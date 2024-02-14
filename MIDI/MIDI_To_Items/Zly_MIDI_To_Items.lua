@@ -2,17 +2,6 @@
 
 --[[===================================================]]--
 
-local function get_script_path()
-	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
-	return filename:match("^(.*)[\\/](.-)$")
-end
-local function add_to_package_path(subpath)
-	package.path = subpath .. "/?.lua;" .. package.path
-end
-add_to_package_path(get_script_path())
-
---[[===================================================]]--
-
 local ImGui = {}
 local JS = {}
 for name, func in pairs(reaper) do
@@ -30,8 +19,7 @@ for name, func in pairs(reaper) do
 
 	::namespace_cont::
 end
-local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
-
+--local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 
 --[[===================================================]]--
 
