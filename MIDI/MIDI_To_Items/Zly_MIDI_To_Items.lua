@@ -46,8 +46,6 @@ local M2I = {
 		midi_notes_read					= 0,
 		midi_notes_channel_destribute	= 0,
 
-		midi_progress_string = "%d/%d",
-
 		midi_load_progress = 0.0,
 		-------------------------------------
 		items_progress		= 0.0,
@@ -294,6 +292,8 @@ local function Generate(midi_take)
 
 	for _, channel_track in pairs(channel_tracks) do
 		local new_group_track
+		local source_name = ""
+		local channel_name = ""
 
 		if channel_track.is_empty then
 			goto cntue_tracks
@@ -302,7 +302,9 @@ local function Generate(midi_take)
 		-- Channel Group Track
 		reaper.InsertTrackAtIndex(track_index - 1, true)
 		new_group_track = reaper.GetTrack(0, track_index - 1)
-		reaper.GetSetMediaTrackInfo_String(new_group_track, "P_NAME", "CHANNEL_"..tostring(channel_track.channel), true)
+		source_name = M2I.sources[channel_track.channel] and M2I.sources[channel_track.channel]:match("[^\\]*$") or "BLANK"
+		channel_name = ("CHANNEL_%d - %s"):format(channel_track.channel, source_name)
+		reaper.GetSetMediaTrackInfo_String(new_group_track, "P_NAME", channel_name, true)
 		channel_track.group_track = new_group_track
 
 		track_index = track_index + 1
@@ -312,7 +314,8 @@ local function Generate(midi_take)
 			local channel_track_index = reaper.GetMediaTrackInfo_Value(channel_track.group_track, "IP_TRACKNUMBER")
 			reaper.InsertTrackAtIndex(channel_track_index, true)
 			local new_items_track = reaper.GetTrack(0, channel_track_index)
-			reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", "Ch_"..tostring(channel_track.channel).." - ITEMS", true)
+			local item_name = ("%d - ITEM - %s"):format(channel_track.channel, source_name)
+			reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", item_name, true)
 
 			channel_note_track.track = new_items_track
 
@@ -479,15 +482,6 @@ local function UpdateParams()
 		and 0
 		or (M2I.widget.midi_notes_read + M2I.widget.midi_notes_channel_destribute) / (M2I.widget.midi_notes_num * 2)
 
-	M2I.widget.midi_progress_string =
-		M2I.widget.midi_notes_num == 0
-		and "%0 : 0/0"
-		or ("%%%d : %d/%d"):format(
-				M2I.widget.midi_load_progress * 100,
-				math.floor(M2I.widget.midi_notes_read+M2I.widget.midi_notes_channel_destribute)/2,
-				M2I.widget.midi_notes_num
-		)
-
 	M2I.widget.items_progress = M2I.widget.generated_notes / M2I.widget.midi_notes_num
 end
 
@@ -581,7 +575,6 @@ local function UI(ctx)
 	ImGui.SameLine(ctx)
 
 	--	void ImGui.ProgressBar(ImGui_Context ctx, number fraction, number size_arg_w = -FLT_MIN, number size_arg_h = 0.0, string overlay = nil)
-	--ImGui.ProgressBar(ctx, M2I.widget.midi_load_progress, -FLT_MIN, 0, M2I.widget.midi_progress_string)
 	ImGui.ProgressBar(ctx, M2I.widget.midi_load_progress, 0, 0, " ")
 	ImGui.SameLine(ctx)
 	ImGui.Text(ctx, ("%%%03d"):format(math.floor(M2I.widget.midi_load_progress * 100.0)))
