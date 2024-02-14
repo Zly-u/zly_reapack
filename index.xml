@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="52a5ca3ccae8f22e2a8e50d10122c0fe2765039a">
+<index version="1" name="NAGASHIZAR" commit="f02b0d63e3ddc91253f81f35bf48ee8d624d3006">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -35,52 +35,7 @@
     </reapack>
   </category>
   <category name="MIDI">
-    <reapack name="meta_ItemsBasedOnMIDI.lua" type="script" desc="MIDI -&gt; Items">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Items Based On MIDI\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Items based on selected MIDI.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each of the item's pitch is based off the first note in the MIDI.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inherits Volume from midi.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Channels in their own Folder Tracks for ease of work.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 USAGE\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select MIDI (Right now works only with one selected MIDI at the time)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Use the script\sa180\par}
-}
-]]></description>
-        <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/ItemsBasedOnMIDI/img_MIDI2Items.png">Preview</link>
-      </metadata>
-      <version name="1.0" author="Zly" time="2024-02-12T11:20:31Z">
-        <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/9b239de6a3bddc3e1d74a99c7157d2abba4bc923/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
-      </version>
-      <version name="1.1" author="Zly" time="2024-02-12T19:24:05Z">
-        <changelog><![CDATA[- Added proper support for Chords and overlapping by time notes]]></changelog>
-        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/b1f233d9f480064e484a00237a479615907cb1d6/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
-      </version>
-      <version name="1.1.1" author="Zly" time="2024-02-12T22:11:51Z">
-        <changelog><![CDATA[- Reversed tracks to more or less represent the midi.
-- Made it so all the notes refer the very first note in the track]]></changelog>
-        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/90b66627147dce585ba1426a2f56e089d6bab5f9/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
-      </version>
-      <version name="1.2" author="Zly" time="2024-02-13T16:05:27Z">
-        <changelog><![CDATA[- Sorts each note to their corresponding channel.
-- Makes Groups for each channel.
-- Sorts the Grouped Tracks.
-- Colors every Channel Group]]></changelog>
-        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/6cd0cc33aa9602848ebd9604a9a56ea2ba876d10/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
-      </version>
-      <version name="1.2.1" author="Zly" time="2024-02-13T16:19:06Z">
-        <changelog><![CDATA[- Renamed script to be more compact with naming
-- Fixed weird case with Channel 0 not being sorted.
-- Now channels start from 1, instead of 0.]]></changelog>
-        <source main="main" file="ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/9010e6190a5adac3cc5097fd636587db92f08333/MIDI/ItemsBasedOnMIDI/Zly_ItemsBasedOnMIDI.lua</source>
-      </version>
-    </reapack>
-    <reapack name="meta_MidiBasedOnItems.lua" type="script" desc="Items -&gt; MIDI">
+    <reapack name="meta_Items_To_MIDI.lua" type="script" desc="Items -&gt; MIDI">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -91,9 +46,44 @@
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="Zly" time="2024-02-11T21:34:35Z">
+      <version name="1.0" author="Zly" time="2024-02-13T17:06:07Z">
         <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="MidiBasedOnItems/Zly_MidiBasedOnItems.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/d61071bda57491139a0b54f7f58dc316ba927707/MIDI/MidiBasedOnItems/Zly_MidiBasedOnItems.lua</source>
+        <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
+      </version>
+    </reapack>
+    <reapack name="meta_MIDI_To_Items.lua" type="script" desc="MIDI -&gt; Items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Items Based On MIDI\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Media Items based on selected MIDI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each of the item's pitch is based off the first note in the MIDI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inherits Volume from midi.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Channels in their own Folder Tracks for ease of work.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Able to choose a sample source file for each Channel before generating all the Media Items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab And many more.\sa180\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/img_MIDI2Items.png">Image Preview</link>
+      </metadata>
+      <version name="1.2.2" author="Zly" time="2024-02-13T17:06:07Z">
+        <changelog><![CDATA[- Fixed sorting when some channels are missing.
+- Fixed coloring based on the amount of channels.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.0.0" author="Zly" time="2024-02-14T12:54:01Z">
+        <changelog><![CDATA[- Added GUI and many other new features to the script.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/2501784feb1158e55548dd7b87ef89b107608556/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.0.2" author="Zly" time="2024-02-14T13:21:23Z">
+        <changelog><![CDATA[- Added button for setting all Channels with the same source.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/7523805c27fbc243fcfe458a67bbac651435b775/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.1" author="Zly" time="2024-02-14T13:38:02Z">
+        <changelog><![CDATA[- Added buttons for clearing samples.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f02b0d63e3ddc91253f81f35bf48ee8d624d3006/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>

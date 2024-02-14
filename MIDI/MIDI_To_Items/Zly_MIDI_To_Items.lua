@@ -1,16 +1,5 @@
 -- @noindex
-
---[[===================================================]]--
-
-local function get_script_path()
-	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
-	return filename:match("^(.*)[\\/](.-)$")
-end
-local function add_to_package_path(subpath)
-	package.path = subpath .. "/?.lua;" .. package.path
-end
-add_to_package_path(get_script_path())
-
+-- TODO: For Channel 10 (Drums) for each pitch make a drum name
 --[[===================================================]]--
 
 local ImGui = {}
@@ -30,7 +19,7 @@ for name, func in pairs(reaper) do
 
 	::namespace_cont::
 end
-local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
+--local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 
 --[[===================================================]]--
 
@@ -542,6 +531,15 @@ local table_content = {
 			end
 		end
 		ImGui.PopID(_ctx)
+	end,
+
+	-- Clear Button
+	function(_ctx, index, _)
+		ImGui.PushID(_ctx, index)
+		if ImGui.SmallButton(_ctx, "Clr") then
+			M2I.sources[index] = ""
+		end
+		ImGui.PopID(_ctx)
 	end
 }
 
@@ -580,19 +578,47 @@ local function UI(ctx)
 	ImGui.Text(ctx, ("%%%03d"):format(math.floor(M2I.widget.midi_load_progress * 100.0)))
 	--ImGui.Spacing(ctx)
 
-	if ImGui.BeginTable(ctx, "table", 3, tables.resz_mixed.flags) then
+	if ImGui.BeginTable(ctx, "table", 4, tables.resz_mixed.flags) then
 		--(ctx, label, flagsIn, init_width_or_weightIn, integer user_idIn)
 		ImGui.TableSetupColumn(ctx, "Channel",	ImGui.TableColumnFlags_WidthFixed())
 		ImGui.TableSetupColumn(ctx, "Source",	ImGui.TableColumnFlags_NoResize(), 210)
 		ImGui.TableSetupColumn(ctx, "",			ImGui.TableColumnFlags_WidthFixed())
+		ImGui.TableSetupColumn(ctx, "",			ImGui.TableColumnFlags_WidthFixed())
 		ImGui.TableHeadersRow(ctx)
 		for row = 1, 16 do
 			ImGui.TableNextRow(ctx)
-			for column = 0, 2 do
+			for column = 0, 3 do
 				ImGui.TableSetColumnIndex(ctx, column)
 				table_content[column+1](ctx, row, channel_tracks[row])
 			end
 		end
+
+		ImGui.TableNextRow(ctx) do
+			local color = hsl2rgb(60, 1, 0.8)
+			ImGui.TableSetColumnIndex(ctx, 0)
+			ImGui.TextColored(ctx, color, "All")
+
+			ImGui.TableSetColumnIndex(ctx, 1)
+			ImGui.TextColored(ctx, color, "Select source for all channels")
+
+			ImGui.TableSetColumnIndex(ctx, 2)
+			if ImGui.SmallButton(ctx, "Set") then
+				local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for all Channels", os.getenv("HOMEPATH") or "", "", formats_string, false)
+				if retval and fileNames ~= "" then
+					for i = 1, 16 do
+						M2I.sources[i] = fileNames
+					end
+				end
+			end
+
+			ImGui.TableSetColumnIndex(ctx, 3)
+			if ImGui.SmallButton(ctx, "Clr") then
+				for i = 1, 16 do
+					M2I.sources[i] = ""
+				end
+			end
+		end
+
 		ImGui.EndTable(ctx)
 	end
 
