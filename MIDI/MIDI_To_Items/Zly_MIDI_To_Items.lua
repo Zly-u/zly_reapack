@@ -1,5 +1,5 @@
 -- @noindex
---
+-- TODO: For Channel 10 (Drums) for each pitch make a drum name
 --[[===================================================]]--
 
 local ImGui = {}
@@ -580,6 +580,25 @@ local function UI(ctx)
 			for column = 0, 2 do
 				ImGui.TableSetColumnIndex(ctx, column)
 				table_content[column+1](ctx, row, channel_tracks[row])
+			end
+		end
+
+		ImGui.TableNextRow(ctx) do
+			local color = hsl2rgb(60, 1, 0.8)
+			ImGui.TableSetColumnIndex(ctx, 0)
+			ImGui.TextColored(ctx, color, "All")
+
+			ImGui.TableSetColumnIndex(ctx, 1)
+			ImGui.TextColored(ctx, color, "Select source for all channels")
+
+			ImGui.TableSetColumnIndex(ctx, 2)
+			if ImGui.SmallButton(ctx, "Set") then
+				local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for all Channels", os.getenv("HOMEPATH") or "", "", formats_string, false)
+				if retval and fileNames ~= "" then
+					for i = 1, 16 do
+						M2I.sources[i] = fileNames
+					end
+				end
 			end
 		end
 		ImGui.EndTable(ctx)
