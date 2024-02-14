@@ -1,5 +1,8 @@
 -- @noindex
 -- TODO: For Channel 10 (Drums) for each pitch make a drum name
+
+--[[===================================================]]--
+--[[===================================================]]--
 --[[===================================================]]--
 
 local ImGui = {}
@@ -31,6 +34,9 @@ local M2I = {
 		CHB_blank_items			= false,
 		CHB_blank_items_click	= false,
 		-------------------------------------
+		CHB_skip_empty_channels_click	= false,
+		CHB_skip_empty_channels			= false,
+		-------------------------------------
 		midi_notes_num					= 0,
 		midi_notes_read					= 0,
 		midi_notes_channel_destribute	= 0,
@@ -42,6 +48,10 @@ local M2I = {
 	},
 	sources = {}
 }
+
+for i = 1, 16 do
+	M2I.sources[i] = nil
+end
 
 local version = "2.0"
 local chords = {}
@@ -170,7 +180,7 @@ local function ProcessMIDI(midi_take)
 	--[[============================================]]--
 	--[[============================================]]--
 
-	                 -- Intermission --
+	-- Intermission --
 	--   I hate how big this whole algorithm already  --
 	--      but i'm lazy to think smart about it	  --
 	--             at least it should work			  --
@@ -206,11 +216,11 @@ local function ProcessMIDI(midi_take)
 				-- doesn't exist then we make it
 				if found_notes_track == nil then
 					table.insert(
-						found_channel_track.tracks,{
-							parent = found_channel_track,
-							track  = nil, --new_items_track,
-							items  = {} -- notes
-						}
+							found_channel_track.tracks,{
+								parent = found_channel_track,
+								track  = nil, --new_items_track,
+								items  = {} -- notes
+							}
 					)
 					found_notes_track = found_channel_track.tracks[track_search_index]
 
@@ -284,6 +294,13 @@ local function Generate(midi_take)
 		local source_name = ""
 		local channel_name = ""
 
+		-- If skipping sampless channels
+		if M2I.widget.CHB_skip_empty_channels then
+			if M2I.sources[channel_track.channel] == nil or M2I.sources[channel_track.channel] == "" then
+				goto cntue_tracks
+			end
+		end
+		-- Skip if empty channel
 		if channel_track.is_empty then
 			goto cntue_tracks
 		end
@@ -300,6 +317,7 @@ local function Generate(midi_take)
 
 		-- Channel Track for Notes
 		for _, channel_note_track in pairs(channel_track.tracks) do
+
 			local channel_track_index = reaper.GetMediaTrackInfo_Value(channel_track.group_track, "IP_TRACKNUMBER")
 			reaper.InsertTrackAtIndex(channel_track_index, true)
 			local new_items_track = reaper.GetTrack(0, channel_track_index)
@@ -318,20 +336,26 @@ local function Generate(midi_take)
 
 	-- Make folders
 	local color_step = 360.0/n_channels
-	for index, ch_track in pairs(channel_tracks) do
+	for index, channel_track in pairs(channel_tracks) do
 		local color
 
-		if ch_track.is_empty then
+		-- If skipping sampless channels
+		if M2I.widget.CHB_skip_empty_channels then
+			if M2I.sources[channel_track.channel] == nil or M2I.sources[channel_track.channel] == "" then
+				goto cntn_folders
+			end
+		end
+		if channel_track.is_empty then
 			goto cntn_folders
 		end
 
-		reaper.SetMediaTrackInfo_Value(ch_track.group_track,		"I_FOLDERDEPTH", 1)
-		reaper.SetMediaTrackInfo_Value(ch_track.tracks[1].track,	"I_FOLDERDEPTH", -1)
+		reaper.SetMediaTrackInfo_Value(channel_track.group_track,		"I_FOLDERDEPTH", 1)
+		reaper.SetMediaTrackInfo_Value(channel_track.tracks[1].track,	"I_FOLDERDEPTH", -1)
 
 		-- Coloring
 		color = hsl2rgb(color_step * (index-1), 1, 0.8, true)
-		reaper.SetTrackColor(ch_track.group_track, color)
-		for _, ch_child in pairs(ch_track.tracks) do
+		reaper.SetTrackColor(channel_track.group_track, color)
+		for _, ch_child in pairs(channel_track.tracks) do
 			reaper.SetTrackColor(ch_child.track, color)
 		end
 
@@ -341,6 +365,9 @@ local function Generate(midi_take)
 	-- Reorder Folders according to the sorted table
 	for _, channel in pairs(channel_tracks) do
 		if channel.is_empty then
+			goto cntue_reorder
+		end
+		if not reaper.ValidatePtr(channel.group_track, "MediaTrack*") then
 			goto cntue_reorder
 		end
 
@@ -370,14 +397,28 @@ local function Generate(midi_take)
 	--[[============================================]]--
 
 	-- Create the items
-	for _, ch_track in pairs(channel_tracks) do
-		if ch_track.is_empty then
+	for _, channel_track in pairs(channel_tracks) do
+		if channel_track.is_empty then
 			goto cnte_create_items
 		end
-		for _, track in pairs(ch_track.tracks) do
+		if M2I.widget.CHB_skip_empty_channels then
+			if M2I.sources[channel_track.channel] == nil or M2I.sources[channel_track.channel] == "" then
+				goto skip_empty
+			end
+		end
+		for _, track in pairs(channel_track.tracks) do
+			if not track.track then
+				goto skip_empty
+			end
+
 			for _, note in pairs(track.items) do
-				local new_item		= reaper.AddMediaItemToTrack(track.track)
-				local new_item_take = reaper.AddTakeToMediaItem(new_item)
+				local start_pos
+				local end_pos
+				local new_item
+				local new_item_take
+
+				new_item	  = reaper.AddMediaItemToTrack(track.track)
+				new_item_take = reaper.AddTakeToMediaItem(new_item)
 
 				--Applying params
 				reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
@@ -395,8 +436,8 @@ local function Generate(midi_take)
 					end
 				end
 
-				local start_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.start_pos)
-				local end_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.end_pos)
+				start_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.start_pos)
+				end_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.end_pos)
 
 				reaper.SetMediaItemPosition(new_item, start_pos, false)
 				reaper.SetMediaItemLength(new_item, end_pos-start_pos, false)
@@ -404,6 +445,7 @@ local function Generate(midi_take)
 				M2I.widget.generated_notes = M2I.widget.generated_notes + 1
 			end
 		end
+		::skip_empty::
 		::cnte_create_items::
 	end
 
@@ -434,7 +476,7 @@ end
 
 local function LoadSelectedMIDI()
 	ResetAll()
-	
+
 	local item_count = reaper.CountSelectedMediaItems()
 	if item_count == 0 then
 		reaper.MB("No MIDI was selected", "Error", 0)
@@ -467,21 +509,13 @@ end
 local is_midi_loaded = false
 local function UpdateParams()
 	M2I.widget.midi_load_progress 	=
-		M2I.widget.midi_notes_num == 0
-		and 0
-		or (M2I.widget.midi_notes_read + M2I.widget.midi_notes_channel_destribute) / (M2I.widget.midi_notes_num * 2)
+	M2I.widget.midi_notes_num == 0
+			and 0
+			or (M2I.widget.midi_notes_read + M2I.widget.midi_notes_channel_destribute) / (M2I.widget.midi_notes_num * 2)
 
 	M2I.widget.items_progress = M2I.widget.generated_notes / M2I.widget.midi_notes_num
 end
 
-local tables = {
-	resz_mixed = {
-		flags = ImGui.TableFlags_SizingFixedFit() |
-				ImGui.TableFlags_RowBg() |
-				ImGui.TableFlags_Borders() |
-				ImGui.TableFlags_Hideable()
-	}
-}
 
 local allowed_formats = {
 	{"MP4 Files (.mp4)",	"*.mp4"},
@@ -511,13 +545,48 @@ local table_content = {
 
 	-- Source
 	function(_ctx, index, _)
-		local text	= (M2I.sources[index] ~= "") and M2I.sources[index] or "Select source for this channel"
+		ImGui.PushID(_ctx, index+50)
+		local does_source_exist = M2I.sources[index] ~= "" and M2I.sources[index] ~= nil
+		local text	= (does_source_exist) and M2I.sources[index] or "Select source for this channel"
 		local color = 0x888888FF
 		if M2I.sources[index] ~= nil and M2I.sources[index] ~= "" then
 			text = text:match("[^\\]*$")
 			color = 0xFFFFFFFF
 		end
-		ImGui.TextColored(_ctx, color, text)
+
+		ImGui.PushStyleColor(_ctx, ImGui.Col_Text(), color)
+		ImGui.PushStyleColor(_ctx, ImGui.Col_HeaderHovered(), 0xFFFFFF55)
+		ImGui.Selectable(_ctx, text)
+		ImGui.PopStyleColor(_ctx, 2)
+
+		-- Drop
+		if ImGui.BeginDragDropTarget(_ctx) then
+			local rv, payload = ImGui.AcceptDragDropPayload(_ctx, "DND_SAMPLES")
+			if rv then
+				local payload_n = tonumber(payload)
+				local old_source = M2I.sources[index]
+				M2I.sources[index] = M2I.sources[payload_n]
+				M2I.sources[payload_n] = old_source
+			end
+			ImGui.EndDragDropTarget(_ctx)
+		end
+
+		if not does_source_exist then
+			ImGui.PopID(_ctx)
+			return
+		end
+
+		-- Drag for swap
+		if ImGui.BeginDragDropSource(_ctx, ImGui.DragDropFlags_None()) then
+			-- Set payload to carry the index of our item (could be anything)
+			ImGui.SetDragDropPayload(_ctx, "DND_SAMPLES", tostring(index))
+
+			-- Drag preview
+			ImGui.Text(_ctx, ("Moving %s"):format(text))
+			ImGui.EndDragDropSource(_ctx)
+		end
+
+		ImGui.PopID(_ctx)
 	end,
 
 	-- Set Button
@@ -542,6 +611,7 @@ local table_content = {
 		ImGui.PopID(_ctx)
 	end
 }
+
 
 local function UI(ctx)
 
@@ -578,7 +648,13 @@ local function UI(ctx)
 	ImGui.Text(ctx, ("%%%03d"):format(math.floor(M2I.widget.midi_load_progress * 100.0)))
 	--ImGui.Spacing(ctx)
 
-	if ImGui.BeginTable(ctx, "table", 4, tables.resz_mixed.flags) then
+	local table_flags =
+	ImGui.TableFlags_SizingFixedFit() |
+			ImGui.TableFlags_RowBg() |
+			ImGui.TableFlags_Borders() |
+			ImGui.TableFlags_Hideable()
+
+	if ImGui.BeginTable(ctx, "table", 4, table_flags) then
 		--(ctx, label, flagsIn, init_width_or_weightIn, integer user_idIn)
 		ImGui.TableSetupColumn(ctx, "Channel",	ImGui.TableColumnFlags_WidthFixed())
 		ImGui.TableSetupColumn(ctx, "Source",	ImGui.TableColumnFlags_NoResize(), 210)
@@ -594,30 +670,30 @@ local function UI(ctx)
 		end
 
 		ImGui.TableNextRow(ctx) do
-			local color = hsl2rgb(60, 1, 0.8)
-			ImGui.TableSetColumnIndex(ctx, 0)
-			ImGui.TextColored(ctx, color, "All")
+		local color = hsl2rgb(60, 1, 0.8)
+		ImGui.TableSetColumnIndex(ctx, 0)
+		ImGui.TextColored(ctx, color, "All")
 
-			ImGui.TableSetColumnIndex(ctx, 1)
-			ImGui.TextColored(ctx, color, "Select source for all channels")
+		ImGui.TableSetColumnIndex(ctx, 1)
+		ImGui.TextColored(ctx, color, "Select source for all channels")
 
-			ImGui.TableSetColumnIndex(ctx, 2)
-			if ImGui.SmallButton(ctx, "Set") then
-				local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for all Channels", os.getenv("HOMEPATH") or "", "", formats_string, false)
-				if retval and fileNames ~= "" then
-					for i = 1, 16 do
-						M2I.sources[i] = fileNames
-					end
-				end
-			end
-
-			ImGui.TableSetColumnIndex(ctx, 3)
-			if ImGui.SmallButton(ctx, "Clr") then
+		ImGui.TableSetColumnIndex(ctx, 2)
+		if ImGui.SmallButton(ctx, "Set") then
+			local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for all Channels", os.getenv("HOMEPATH") or "", "", formats_string, false)
+			if retval and fileNames ~= "" then
 				for i = 1, 16 do
-					M2I.sources[i] = ""
+					M2I.sources[i] = fileNames
 				end
 			end
 		end
+
+		ImGui.TableSetColumnIndex(ctx, 3)
+		if ImGui.SmallButton(ctx, "Clr") then
+			for i = 1, 16 do
+				M2I.sources[i] = ""
+			end
+		end
+	end
 
 		ImGui.EndTable(ctx)
 	end
@@ -644,6 +720,8 @@ local function UI(ctx)
 		ImGui.Text(ctx, ("%%%03d"):format(math.floor(M2I.widget.items_progress*100)))
 
 		M2I.widget.CHB_blank_items_click, M2I.widget.CHB_blank_items = ImGui.Checkbox(ctx, "Blank Items", M2I.widget.CHB_blank_items)
+		ImGui.SameLine(ctx)
+		M2I.widget.CHB_skip_empty_channels_click, M2I.widget.CHB_skip_empty_channels = ImGui.Checkbox(ctx, "Skip Sampless channels", M2I.widget.CHB_skip_empty_channels)
 	else
 		if is_midi_loaded then
 			is_midi_loaded = false
@@ -670,12 +748,12 @@ local function SetupUI()
 	ImGui.SetConfigVar(ctx, ImGui.ConfigVar_WindowsResizeFromEdges(), 1)
 	ImGui.SetConfigVar(ctx, ImGui.ConfigVar_WindowsResizeFromEdges(), 1)
 	local window_flags =
-		--ImGui.WindowFlags_None() |
-		ImGui.WindowFlags_NoDocking() |
-		ImGui.WindowFlags_NoResize() |
-		ImGui.WindowFlags_NoCollapse() |
-		ImGui.WindowFlags_NoSavedSettings() |
-		ImGui.WindowFlags_AlwaysAutoResize()
+	--ImGui.WindowFlags_None() |
+	ImGui.WindowFlags_NoDocking() |
+			ImGui.WindowFlags_NoResize() |
+			ImGui.WindowFlags_NoCollapse() |
+			ImGui.WindowFlags_NoSavedSettings() |
+			ImGui.WindowFlags_AlwaysAutoResize()
 	local function LoopUI()
 		local visible, open = reaper.ImGui_Begin(ctx, "MIDI -> Items "..version, true, window_flags)
 		if visible then
