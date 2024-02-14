@@ -1,5 +1,7 @@
 -- @noindex
 
+--[[===================================================]]--
+
 local function get_script_path()
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
 	return filename:match("^(.*)[\\/](.-)$")
@@ -12,83 +14,33 @@ add_to_package_path(get_script_path())
 --[[===================================================]]--
 
 local ImGui = {}
+local JS = {}
 for name, func in pairs(reaper) do
-	name = name:match('^ImGui_(.+)$')
-	if name then ImGui[name] = func end
+	local name_imgui = name:match('^ImGui_(.+)$')
+	local name_js = name:match('^JS_(.+)$')
+	if name_imgui then
+		ImGui[name_imgui] = func
+		goto namespace_cont
+	end
+
+	if name_js then
+		JS[name_js] = func
+		goto namespace_cont
+	end
+
+	::namespace_cont::
 end
 local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 
-local JS = {}
-for name, func in pairs(reaper) do
-	name = name:match('^JS_(.+)$')
-	if name then JS[name] = func end
-end
 --[[===================================================]]--
-
-_G._print = print
-_G.print = function(...)
-	local string = ""
-	for _, v in pairs({...}) do
-		string = string .. tostring(v) .. "\t"
-	end
-	string = string.."\n"
-	reaper.ShowConsoleMsg(string)
-end
-
---[[===================================================]]--
-
-local function printTable(t, show_details)
-	show_details = show_details or false
-	local printTable_cache = {}
-
-	local function sub_printTable(_t, indent, indenty)
-		indenty = indenty or indent
-
-		if printTable_cache[tostring(_t)] then
-			print(indenty .. "*" .. tostring(_t))
-			return
-		end
-
-
-		printTable_cache[tostring(_t)] = true
-		if type(_t) ~= "table" then
-			print(indenty..(show_details and tostring(_t) or ""))
-			return
-		end
-
-
-		for key, val in pairs(_t) do
-			if type(val) == "table" then
-				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
-				sub_printTable(val, indent, indenty..indent)
-				print(indenty .. "}")
-			elseif type(val) == "string" then
-				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
-			else
-				print(indenty .. "[" .. key .. "] => " .. tostring(val))
-			end
-		end
-	end
-
-	if type(t) == "table" then
-		print((show_details and tostring(t)..": " or "").."{")
-		sub_printTable(t, "\t")
-		print("}")
-	else
-		sub_printTable(t, "\t")
-	end
-end
-
-
---[[===================================================]]--
-
-local async = require("async")
-local demo = require("demo")
 
 local M2I = {
 	widget = {
 		CHB_inherit_vol_click	= false,
 		CHB_inherit_vol			= false,
+		-------------------------------------
+		CHB_blank_items			= false,
+		CHB_blank_items_click	= false,
 		-------------------------------------
 		midi_notes_num					= 0,
 		midi_notes_read					= 0,
@@ -109,21 +61,16 @@ local chords = {}
 local channel_tracks = {}
 local n_channels = 0
 local track_index = -1
+local processed_midi_take = nil
 
--- TODO: UI
---  	TODO: General info about selected MIDI
---		TODO: Load data button
---			TODO: Load progress
---  	TODO: Ability to pick source per channel
---		TODO: Generation Progress
+local function hsl2rgb(H, S, L, reaper_color)
+	reaper_color = reaper_color or false
 
-local function hsl2rgb(H, S, L)
 	local C = (1-math.abs((2*L)-1))*S
 	local X = C*(1-math.abs((((H%360) / 60)%2)-1))
 	local m = L - C/2
 
 	local color = {0, 0, 0}
-
 
 	H = H % 360.0
 	if 0 <= H and H < 60 then
@@ -147,7 +94,11 @@ local function hsl2rgb(H, S, L)
 	outColor		= r
 	outColor		= (outColor << 8) | g
 	outColor		= (outColor << 8) | b
-	outColor		= outColor | 0x1000000
+	if reaper_color then
+		outColor = outColor | 0x1000000
+	else
+		outColor = (outColor << 8) | 0xFF
+	end
 	return outColor
 end
 
@@ -171,15 +122,12 @@ local function GetNoteData(take, _id)
 	}
 end
 
-local function ProcessMIDI(midi_item, midi_take)
+local function ProcessMIDI(midi_take)
 	reaper.ClearConsole()
 
 	reaper.MIDI_Sort(midi_take)
 	local _, notes_num, _, _ = reaper.MIDI_CountEvts(midi_take)
 	M2I.widget.midi_notes_num = notes_num
-
-	local midi_track	= reaper.GetMediaItemTrack(midi_item)
-	track_index			= reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
 
 	--[[============================================]]--
 	--[[============================================]]--
@@ -312,22 +260,48 @@ local function ProcessMIDI(midi_item, midi_take)
 	--[[============================================]]--
 
 	-- Sort table
-	table.sort(channel_tracks, function(channelA, channelB)
-		print(channelA, channelB)
-		if not channelB or not channelA then
-			return false
+
+	-- Fill up so the sort can work
+	for i = 1 , 16 do
+		if channel_tracks[i] == nil then
+			channel_tracks[i] = {
+				channel = i,
+				is_empty = true
+			}
 		end
+	end
+
+	table.sort(channel_tracks, function(channelA, channelB)
 		return channelA.channel < channelB.channel
 	end)
+
+	return true
 end
 
+
 local function Generate(midi_take)
+	M2I.widget.generated_notes = 0
+
 	reaper.Undo_BeginBlock()
 
+	if not reaper.ValidatePtr(midi_take, "MediaItem_Take*") then
+		reaper.MB("The MIDI Item doesn't exist anymore.", "Error", 0)
+		return false
+	end
+
+	local midi_track = reaper.GetMediaItemTakeInfo_Value(midi_take, "P_TRACK")
+	track_index		 = reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
+
 	for _, channel_track in pairs(channel_tracks) do
+		local new_group_track
+
+		if channel_track.is_empty then
+			goto cntue_tracks
+		end
+
 		-- Channel Group Track
 		reaper.InsertTrackAtIndex(track_index - 1, true)
-		local new_group_track = reaper.GetTrack(0, track_index - 1)
+		new_group_track = reaper.GetTrack(0, track_index - 1)
 		reaper.GetSetMediaTrackInfo_String(new_group_track, "P_NAME", "CHANNEL_"..tostring(channel_track.channel), true)
 		channel_track.group_track = new_group_track
 
@@ -344,6 +318,8 @@ local function Generate(midi_take)
 
 			track_index = track_index + 1
 		end
+
+		::cntue_tracks::
 	end
 
 	--[[============================================]]--
@@ -351,22 +327,36 @@ local function Generate(midi_take)
 	-- Make folders
 	local color_step = 360.0/n_channels
 	for index, ch_track in pairs(channel_tracks) do
+		local color
+
+		if ch_track.is_empty then
+			goto cntn_folders
+		end
+
 		reaper.SetMediaTrackInfo_Value(ch_track.group_track,		"I_FOLDERDEPTH", 1)
 		reaper.SetMediaTrackInfo_Value(ch_track.tracks[1].track,	"I_FOLDERDEPTH", -1)
 
 		-- Coloring
-		local color = hsl2rgb(color_step * (index-1), 1, 0.8)
+		color = hsl2rgb(color_step * (index-1), 1, 0.8, true)
 		reaper.SetTrackColor(ch_track.group_track, color)
 		for _, ch_child in pairs(ch_track.tracks) do
 			reaper.SetTrackColor(ch_child.track, color)
 		end
+
+		::cntn_folders::
 	end
 
 	-- Reorder Folders according to the sorted table
 	for _, channel in pairs(channel_tracks) do
+		if channel.is_empty then
+			goto cntue_reorder
+		end
+
 		reaper.SetTrackSelected(channel.group_track, true)
 		reaper.ReorderSelectedTracks(track_index-1, 0)
 		reaper.SetTrackSelected(channel.group_track, false)
+
+		::cntue_reorder::
 	end
 
 	--[[============================================]]--
@@ -389,22 +379,28 @@ local function Generate(midi_take)
 
 	-- Create the items
 	for _, ch_track in pairs(channel_tracks) do
+		if ch_track.is_empty then
+			goto cnte_create_items
+		end
 		for _, track in pairs(ch_track.tracks) do
 			for _, note in pairs(track.items) do
 				local new_item		= reaper.AddMediaItemToTrack(track.track)
 				local new_item_take = reaper.AddTakeToMediaItem(new_item)
 
-
+				--Applying params
 				reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
 				reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", note.pitch - first_base_pitch)
 				if M2I.widget.CHB_inherit_vol then
 					reaper.SetMediaItemInfo_Value(new_item, "D_VOL", note.vel/127.0)
 				end
 
-				local note_channel = M2I.sources[note.channel]
-				if note_channel ~= nil then
-					local source_file = reaper.PCM_Source_CreateFromFile(note_channel)
-					reaper.SetMediaItemTake_Source(new_item_take, source_file)
+				-- Applying Sources
+				if not M2I.widget.CHB_blank_items then
+					local note_channel = M2I.sources[note.channel]
+					if note_channel ~= nil then
+						local source_file = reaper.PCM_Source_CreateFromFile(note_channel)
+						reaper.SetMediaItemTake_Source(new_item_take, source_file)
+					end
 				end
 
 				local start_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.start_pos)
@@ -416,36 +412,41 @@ local function Generate(midi_take)
 				M2I.widget.generated_notes = M2I.widget.generated_notes + 1
 			end
 		end
+		::cnte_create_items::
 	end
 
 	reaper.Undo_EndBlock("Items Based on MIDI", 0)
 	reaper.UpdateArrange()
+
+	return true
 end
 
 
-local function ProcessSelectedMIDI()
-	local midi_count = reaper.CountSelectedMediaItems(0)
-	if item_count == 0 then
-		reaper.MB("No MIDI was selected", "Error", 0)
-		return
-	end
+local function ResetAll()
+	chords			= {}
+	channel_tracks	= {}
+	n_channels = 0
+	track_index = -1
 
-	for i = 0, midi_count - 1 do
-		local midi_item	= reaper.GetSelectedMediaItem(0, i)
-		local midi_take = reaper.GetActiveTake(midi_item)
-		ProcessMIDI(midi_take)
-	end
+	M2I.widget.midi_notes_num = 0
+	M2I.widget.midi_load_progress = 0
+	M2I.widget.midi_notes_read = 0
+	M2I.widget.midi_notes_channel_destribute = 0
+
+	M2I.widget.items_progress = 0
+	M2I.widget.generated_notes = 0
+
+	processed_midi_take = nil
 end
 
 
 local function LoadSelectedMIDI()
-	chords			= {}
-	channel_tracks	= {}
-
+	ResetAll()
+	
 	local item_count = reaper.CountSelectedMediaItems()
 	if item_count == 0 then
 		reaper.MB("No MIDI was selected", "Error", 0)
-		return
+		return nil
 	end
 
 	local midi_item	= reaper.GetSelectedMediaItem(0, 0)
@@ -453,10 +454,13 @@ local function LoadSelectedMIDI()
 
 	if not reaper.TakeIsMIDI(midi_take) then
 		reaper.MB("The selected Item is not a MIDI", "Error", 0)
-		return
+		return nil
 	end
 
-	ProcessMIDI(midi_item, midi_take)
+	local success = ProcessMIDI(midi_take)
+	if not success then
+		return nil
+	end
 
 	return midi_take
 end
@@ -467,8 +471,8 @@ end
 --[[==================================================]]--
 
 
-local processed_midi_take = nil
 
+local is_midi_loaded = false
 local function UpdateParams()
 	M2I.widget.midi_load_progress 	=
 		M2I.widget.midi_notes_num == 0
@@ -492,8 +496,6 @@ local tables = {
 		flags = ImGui.TableFlags_SizingFixedFit() |
 				ImGui.TableFlags_RowBg() |
 				ImGui.TableFlags_Borders() |
-				--ImGui.TableFlags_Resizable() |
-				--ImGui.TableFlags_Reorderable() |
 				ImGui.TableFlags_Hideable()
 	}
 }
@@ -515,21 +517,17 @@ for _, format in pairs(allowed_formats) do
 end
 
 local table_content = {
-	-- Channel used?
-	function(_ctx, index, channel_data)
-		local text  = (channel_data == nil) and "x" or "*"
-		local color = (channel_data == nil) and 0x888888FF or 0xFFFFFFFF
-		ImGui.TextColored(_ctx, color, text)
-	end,
-
 	-- Channel
 	function(_ctx, index, channel_data)
-		local color = (channel_data == nil) and 0x888888FF or 0xFFFFFFFF
+		local color = 0x888888FF
+		if channel_data then
+			color = channel_data.is_empty and 0x888888FF or hsl2rgb(120, 1, 0.8)
+		end
 		ImGui.TextColored(_ctx, color, index)
 	end,
 
 	-- Source
-	function(_ctx, index, channel_data)
+	function(_ctx, index, _)
 		local text	= (M2I.sources[index] ~= "") and M2I.sources[index] or "Select source for this channel"
 		local color = 0x888888FF
 		if M2I.sources[index] ~= nil and M2I.sources[index] ~= "" then
@@ -540,11 +538,10 @@ local table_content = {
 	end,
 
 	-- Set Button
-	function(_ctx, index, channel_data)
+	function(_ctx, index, _)
 		ImGui.PushID(_ctx, index)
 		--if ImGui.Button(_ctx, "Set") then
 		if ImGui.SmallButton(_ctx, "Set") then
-			--integer retval, string fileNames = reaper.JS_Dialog_BrowseForOpenFiles(string windowTitle, string initialFolder, string initialFile, string extensionList, boolean allowMultiple)
 			local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for Media Items", os.getenv("HOMEPATH") or "", "", formats_string, false)
 			if retval and fileNames ~= "" then
 				M2I.sources[index] = fileNames
@@ -555,53 +552,50 @@ local table_content = {
 }
 
 local function UI(ctx)
+
+	--[[===============================]]--
+	--[[============ PARAMS ===========]]--
+	--[[===============================]]--
+
 	ImGui.Text(ctx, "Select a MIDI item and press \"Load MIDI\".")
 
-	--boolean retval, string buf = reaper.ImGui_InputTextWithHint(
-	--			ImGui_Context ctx, string label, string hint, string buf,
-	--			number flags = InputTextFlags_None, ImGui_Function callback = nil)
-	--ImGui.InputTextWithHint(ctx, 'input text (w/ hint)', 'enter text here', widgets.basic.str1)
-
+	ImGui.PushStyleVar(ctx, ImGui.StyleVar_SeparatorTextAlign(), 0.5, 0.5)
 	ImGui.SeparatorText(ctx, "Properties")
+	ImGui.PopStyleVar(ctx)
 
-	M2I.widget.CHB_inherit_vol_click, M2I.widget.CHB_inherit_vol =
-		ImGui.Checkbox(ctx, "Inherit Volume", M2I.widget.CHB_inherit_vol)
+	M2I.widget.CHB_inherit_vol_click, M2I.widget.CHB_inherit_vol = ImGui.Checkbox(ctx, "Inherit Volume", M2I.widget.CHB_inherit_vol)
 
+	ImGui.PushStyleVar(ctx, ImGui.StyleVar_SeparatorTextAlign(), 0.5, 0.5)
 	ImGui.SeparatorText(ctx, "MIDI")
+	ImGui.PopStyleVar(ctx)
 
 	--[[==================================]]--
 	--[[============ MIDI LOAD ===========]]--
 	--[[==================================]]--
 
 	if ImGui.Button(ctx, "Load MIDI") then
-		M2I.widget.midi_notes_num = 0
-		M2I.widget.midi_load_progress = 0
-		M2I.widget.midi_notes_read = 0
-		M2I.widget.midi_notes_channel_destribute = 0
-
-		M2I.widget.items_progress = 0
-
-		-- stupid way of return by reference
-		processed_midi_take = nil
 		processed_midi_take = LoadSelectedMIDI()
+		is_midi_loaded = reaper.ValidatePtr(processed_midi_take, "MediaItem_Take*")
 	end
 
 	ImGui.SameLine(ctx)
 
 	--	void ImGui.ProgressBar(ImGui_Context ctx, number fraction, number size_arg_w = -FLT_MIN, number size_arg_h = 0.0, string overlay = nil)
 	--ImGui.ProgressBar(ctx, M2I.widget.midi_load_progress, -FLT_MIN, 0, M2I.widget.midi_progress_string)
-	ImGui.ProgressBar(ctx, M2I.widget.midi_load_progress)
+	ImGui.ProgressBar(ctx, M2I.widget.midi_load_progress, 0, 0, " ")
+	ImGui.SameLine(ctx)
+	ImGui.Text(ctx, ("%%%03d"):format(math.floor(M2I.widget.midi_load_progress * 100.0)))
+	--ImGui.Spacing(ctx)
 
-	if ImGui.BeginTable(ctx, "table", 4, tables.resz_mixed.flags) then
+	if ImGui.BeginTable(ctx, "table", 3, tables.resz_mixed.flags) then
 		--(ctx, label, flagsIn, init_width_or_weightIn, integer user_idIn)
-		ImGui.TableSetupColumn(ctx, "Used?",	ImGui.TableColumnFlags_WidthFixed())
 		ImGui.TableSetupColumn(ctx, "Channel",	ImGui.TableColumnFlags_WidthFixed())
 		ImGui.TableSetupColumn(ctx, "Source",	ImGui.TableColumnFlags_NoResize(), 210)
-		ImGui.TableSetupColumn(ctx, "",			ImGui.TableColumnFlags_WidthFixed() | ImGui.TableColumnFlags_NoResize())
+		ImGui.TableSetupColumn(ctx, "",			ImGui.TableColumnFlags_WidthFixed())
 		ImGui.TableHeadersRow(ctx)
 		for row = 1, 16 do
 			ImGui.TableNextRow(ctx)
-			for column = 0, 3 do
+			for column = 0, 2 do
 				ImGui.TableSetColumnIndex(ctx, column)
 				table_content[column+1](ctx, row, channel_tracks[row])
 			end
@@ -609,24 +603,33 @@ local function UI(ctx)
 		ImGui.EndTable(ctx)
 	end
 
-	--[[=================================]]--
-	--[[============= BUTTONS ===========]]--
-	--[[=================================]]--
+	--[[==========================================]]--
+	--[[============= GENEATGE BUTTONS ===========]]--
+	--[[==========================================]]--
 
-	ImGui.SeparatorText(ctx, "")
+	if reaper.ValidatePtr(processed_midi_take, "MediaItem_Take*") then
 
-	ImGui.ProgressBar(ctx, M2I.widget.items_progress)
+		ImGui.PushStyleVar(ctx, ImGui.StyleVar_SeparatorTextAlign(), 0.5, 0.5)
+		ImGui.SeparatorText(ctx, "Generate Items")
+		ImGui.PopStyleVar(ctx)
 
-	if ImGui.Button(ctx, "Generate") then
-		if processed_midi_take then
-			Generate(processed_midi_take)
+		if ImGui.Button(ctx, "Generate") then
+			if processed_midi_take then
+				local _ = Generate(processed_midi_take)
+			end
 		end
-	end
 
-	ImGui.SameLine(ctx)
+		ImGui.SameLine(ctx)
+		ImGui.ProgressBar(ctx, M2I.widget.items_progress, 0, 0, " ")
+		ImGui.SameLine(ctx)
+		ImGui.Text(ctx, ("%%%03d"):format(math.floor(M2I.widget.items_progress*100)))
 
-	ImGui.SameLine(ctx)
-	if ImGui.Button(ctx, "Generate Blank") then
+		M2I.widget.CHB_blank_items_click, M2I.widget.CHB_blank_items = ImGui.Checkbox(ctx, "Blank Items", M2I.widget.CHB_blank_items)
+	else
+		if is_midi_loaded then
+			is_midi_loaded = false
+			ResetAll()
+		end
 	end
 end
 
@@ -640,6 +643,7 @@ local function Init()
 
 end
 
+
 local function SetupUI()
 	local ctx = ImGui.CreateContext("MIDI -> Items")
 
@@ -651,7 +655,8 @@ local function SetupUI()
 		ImGui.WindowFlags_NoDocking() |
 		ImGui.WindowFlags_NoResize() |
 		ImGui.WindowFlags_NoCollapse() |
-		ImGui.WindowFlags_NoSavedSettings()
+		ImGui.WindowFlags_NoSavedSettings() |
+		ImGui.WindowFlags_AlwaysAutoResize()
 	local function LoopUI()
 		local visible, open = reaper.ImGui_Begin(ctx, "MIDI -> Items "..version, true, window_flags)
 		if visible then
@@ -682,25 +687,6 @@ end
 
 main()
 
-
---[[===================================================]]--
---[[===================================================]]--
---[[===================================================]]--
-
--- DEMO --
-
-local ctx = reaper.ImGui_CreateContext("DEMO")
-local function loop()
-	demo.PushStyle(ctx)
-	demo.ShowDemoWindow(ctx)
-	if reaper.ImGui_Begin(ctx, "Dear ImGui Style Editor") then
-		demo.ShowStyleEditor(ctx)
-		reaper.ImGui_End(ctx)
-	end
-	demo.PopStyle(ctx)
-	reaper.defer(loop)
-end
-reaper.defer(loop)
 
 
 
