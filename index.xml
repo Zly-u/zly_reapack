@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="f02b0d63e3ddc91253f81f35bf48ee8d624d3006">
+<index version="1" name="NAGASHIZAR" commit="a92a2c17e5d487b3a138fa12569724f294db6300">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -84,6 +84,12 @@
       <version name="2.1" author="Zly" time="2024-02-14T13:38:02Z">
         <changelog><![CDATA[- Added buttons for clearing samples.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f02b0d63e3ddc91253f81f35bf48ee8d624d3006/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.2" author="Zly" time="2024-02-14T18:27:43Z">
+        <changelog><![CDATA[- Added Option for skipping sampless channels.
+- Added Drag and Drop for swapping samples.
+- Added Drag and Drop files to assign samples]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/da873c983b106330bc65e87d3cc6d0ba9b5c29b7/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
