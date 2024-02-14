@@ -2,7 +2,7 @@
 @metapackage
 @description MIDI -> Items
 @author Zly
-@version 2.0.0
+@version 2.0.1
 @provides
 	[main] .\MIDI_To_Items\Zly_MIDI_To_Items.lua
 @about
