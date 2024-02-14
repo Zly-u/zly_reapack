@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="2501784feb1158e55548dd7b87ef89b107608556">
+<index version="1" name="NAGASHIZAR" commit="7523805c27fbc243fcfe458a67bbac651435b775">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -76,6 +76,10 @@
       <version name="2.0.0" author="Zly" time="2024-02-14T12:54:01Z">
         <changelog><![CDATA[- Added GUI and many other new features to the script.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/2501784feb1158e55548dd7b87ef89b107608556/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.0.2" author="Zly" time="2024-02-14T13:21:23Z">
+        <changelog><![CDATA[- Added button for setting all Channels with the same source.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/7523805c27fbc243fcfe458a67bbac651435b775/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
