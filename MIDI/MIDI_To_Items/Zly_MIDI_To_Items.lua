@@ -1,6 +1,85 @@
 -- @noindex
 -- TODO: For Channel 10 (Drums) for each pitch make a drum name
 
+local function get_script_path()
+	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
+	return filename:match("^(.*)[\\/](.-)$")
+end
+local function add_to_package_path(subpath)
+	package.path = subpath .. "/?.lua;" .. package.path
+end
+add_to_package_path(get_script_path())
+
+--[[===================================================]]--
+
+_G._print = print
+_G.print = function(...)
+	local string = ""
+	for _, v in pairs({...}) do
+		string = string .. tostring(v) .. "\t"
+	end
+	string = string.."\n"
+	reaper.ShowConsoleMsg(string)
+end
+
+--[[===================================================]]--
+
+local function printTable(t, show_details)
+	show_details = show_details or false
+	local printTable_cache = {}
+
+	local function sub_printTable(_t, indent, indenty)
+		indenty = indenty or indent
+
+		if printTable_cache[tostring(_t)] then
+			print(indenty .. "*" .. tostring(_t))
+			return
+		end
+
+
+		printTable_cache[tostring(_t)] = true
+		if type(_t) ~= "table" then
+			print(indenty..(show_details and tostring(_t) or ""))
+			return
+		end
+
+
+		for key, val in pairs(_t) do
+			if type(val) == "table" then
+				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
+				sub_printTable(val, indent, indenty..indent)
+				print(indenty .. "}")
+			elseif type(val) == "string" then
+				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
+			else
+				print(indenty .. "[" .. key .. "] => " .. tostring(val))
+			end
+		end
+	end
+
+	if type(t) == "table" then
+		print((show_details and tostring(t)..": " or "").."{")
+		sub_printTable(t, "\t")
+		print("}")
+	else
+		sub_printTable(t, "\t")
+	end
+end
+
+local demo = require("demo")
+local demo_ctx = reaper.ImGui_CreateContext('My script')
+local function loop()
+	demo.PushStyle(demo_ctx)
+	demo.ShowDemoWindow(demo_ctx)
+	if reaper.ImGui_Begin(demo_ctx, 'Dear ImGui Style Editor') then
+		demo.ShowStyleEditor(demo_ctx)
+		reaper.ImGui_End(demo_ctx)
+	end
+	demo.PopStyle(demo_ctx)
+	reaper.defer(loop)
+end
+reaper.defer(loop)
+
 --[[===================================================]]--
 --[[===================================================]]--
 --[[===================================================]]--
@@ -559,18 +638,26 @@ local table_content = {
 		ImGui.Selectable(_ctx, text)
 		ImGui.PopStyleColor(_ctx, 2)
 
-		-- Drop
+		-- Drop actions
 		if ImGui.BeginDragDropTarget(_ctx) then
-			local rv, payload = ImGui.AcceptDragDropPayload(_ctx, "DND_SAMPLES")
-			if rv then
-				local payload_n = tonumber(payload)
-				local old_source = M2I.sources[index]
-				M2I.sources[index] = M2I.sources[payload_n]
-				M2I.sources[payload_n] = old_source
+			-- First try file drop
+			local rv_file, file_count = ImGui.AcceptDragDropPayloadFiles(_ctx)
+			if rv_file then
+				local rv, file = ImGui.GetDragDropPayloadFile(_ctx, 0)
+				M2I.sources[index] = file
+			else -- Then Try UI drop
+				local rv_ui, payload = ImGui.AcceptDragDropPayload(_ctx, "DND_SAMPLES")
+				if rv_ui then
+					local payload_n = tonumber(payload)
+					local old_source = M2I.sources[index]
+					M2I.sources[index] = M2I.sources[payload_n]
+					M2I.sources[payload_n] = old_source
+				end
 			end
 			ImGui.EndDragDropTarget(_ctx)
 		end
 
+		-- Skip Drag if empty source
 		if not does_source_exist then
 			ImGui.PopID(_ctx)
 			return
