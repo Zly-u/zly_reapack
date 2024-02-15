@@ -21,6 +21,8 @@
 @links
 	Author https://twitter.com/zly_u
 	DnD_Preview https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/Preview_DnD_Feature.gif
+@donation
+	Donate https://boosty.to/zly
 @changelog
 	- Fixed crashing when Channels are filtered out in the MIDI Editor.
 	- Fixed sometimes wacky folder generation.
