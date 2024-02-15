@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="fb4c92a44d81555a382b1edc5f777dd29c4eed49">
+<index version="1" name="NAGASHIZAR" commit="7ef57125ddc277d2314575b759f5d0ebc2ae6e12">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -68,8 +68,9 @@
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab And some more.\sa180\par}
 }
 ]]></description>
+        <link rel="website" href="https://twitter.com/zly_u">Author</link>
+        <link rel="website" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/Preview_DnD_Feature.gif">DnD_Preview</link>
         <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/img_MIDI2Items.png">Overview</link>
-        <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/Preview_DnD_Feature.gif">DnD Preview</link>
       </metadata>
       <version name="1.2.2" author="Zly" time="2024-02-13T17:06:07Z">
         <changelog><![CDATA[- Fixed sorting when some channels are missing.
@@ -97,6 +98,16 @@
       <version name="2.3" author="Zly" time="2024-02-15T15:46:17Z">
         <changelog><![CDATA[- Added a feature for Channel 10 (drums channel): feature redistributes notes to their own tracks and renames tracks to their corresponding drum names that those pitches are mapped to by the MIDI standard.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/5d3d90b0c802761a130fd4a2cbef7a7048bff538/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.3.1" author="Zly" time="2024-02-15T22:39:07Z">
+        <changelog><![CDATA[- Fixed crashing when Channels are filtered out in the MIDI Editor.
+- Fixed sometimes wacky folder generation.
+- Fixed poor sorting for drums.
+- Added Roland GS drums into the drums list.
+- Added notes counter in the progress bars.
+- Tweaked style a bit.
+- Added hint about not entirely loaded MIDI.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/8e6d4696e8c3ce2e9ea4c93077ac15bcb0d933bf/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
