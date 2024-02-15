@@ -86,7 +86,21 @@ end
 
 --[[===================================================]]--
 
+-- 61 drums
+local drums_start_pitch = 27-1
+local drums_end_pitch = 87-1
 local ch10_drum_names = {
+	-- Roland GS
+	[27] = "Filter Snap", -- or High Q
+	[28] = "Slap Noise",
+	[29] = "Scratch Push",
+	[30] = "Scratch Pull",
+	[31] = "Drum sticks",
+	[32] = "Square Click",
+	[33] = "Metronome Click",
+	[34] = "Metronome Bell",
+
+	-- General MIDI Standard
 	[35] = "Acoustic Bass Drum",
 	[36] = "Electric Bass Drum",
 	[37] = "Side Stick",
@@ -134,12 +148,19 @@ local ch10_drum_names = {
 	[79] = "Open Cuica",
 	[80] = "Mute Triangle",
 	[81] = "Open Triangle",
+	-- Roland GS
+	[82] = "Shaker",
+	[83] = "Jingle Bell",
+	[84] = "Belltree",
+	[85] = "Castanets",
+	[86] = "Mute Surdo",
+	[87] = "Open Surdo",
 }
 
 --[[===================================================]]--
 
 local M2I = {
-	version = "2.3",
+	version = "2.3.1",
 
 	sources = {},
 	chords  = {},
@@ -303,11 +324,16 @@ function M2I:ProcessMIDI(midi_take)
 	local max_concurrent_notes = 1
 	local current_chord		= {}
 	for id = 0, notes_num - 1 do
-		local current_note = GetNoteData(midi_take, id)
+		local current_note = GetNoteData(midi_take, id) -- Can be nil if the notes are filtered out in the editor
 
 		-- Go through all notes in the chord set (if not empty)
 		local chord_note_index = 1
 		local found_overlap = false
+
+		if current_note == nil then
+			goto skip_filtered_out_note
+		end
+
 		while chord_note_index <= #current_chord do
 			local chord_note = current_chord[chord_note_index]
 
@@ -341,7 +367,10 @@ function M2I:ProcessMIDI(midi_take)
 		if #current_chord == 0 then
 			table.insert(current_chord, current_note)
 		end
+
 		self.widget.midi_notes_read = self.widget.midi_notes_read + 1
+
+		::skip_filtered_out_note::
 	end
 
 	-- Insert the last set.
@@ -365,48 +394,50 @@ function M2I:ProcessMIDI(midi_take)
 			-- Go through tracks and find valid position
 			local track_search_index = 1
 			while true do
-				local found_channel_track = self.channel_tracks[note.channel]
+				local found_channel_group_track = self.channel_tracks[note.channel]
 				local found_notes_track = nil
 
 				-- Create group track for a channel if doesn't exist already
-				if found_channel_track == nil then
+				if found_channel_group_track == nil then
 					self.channel_tracks[note.channel] = {
 						channel = note.channel,
 						group_track = nil, 		--new_group_track,
 						tracks = {}
 					}
 
-					found_channel_track = self.channel_tracks[note.channel]
+					found_channel_group_track = self.channel_tracks[note.channel]
 
 					self.n_channels = self.n_channels + 1
 				end
 
 				if note.channel ~= 10 then
-					found_notes_track = found_channel_track.tracks[track_search_index]
+					found_notes_track = found_channel_group_track.tracks[track_search_index]
 				else
-					found_notes_track = found_channel_track.tracks[note.pitch-34]
+					found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
 				end
 
 				-- If next track to check for valid positions
 				-- doesn't exist then we make it
 				if found_notes_track == nil then
 					if note.channel ~= 10 then
-						table.insert(found_channel_track.tracks, {
-								parent = found_channel_track,
+						table.insert(found_channel_group_track.tracks, {
+								parent = found_channel_group_track,
 								track  = nil, --new_items_track,
 								items  = {} -- notes
 							}
 						)
 
-						found_notes_track = found_channel_track.tracks[track_search_index]
+						found_notes_track = found_channel_group_track.tracks[track_search_index]
 					else
-						found_channel_track.tracks[note.pitch-34] = {
-							parent = found_channel_track,
-							track  = nil, --new_items_track,
-							items  = {} -- notes
-						}
+						for i = 1, drums_end_pitch - drums_start_pitch + 1 do
+							found_channel_group_track.tracks[i] = {
+								parent = found_channel_group_track.group_track,
+								track  = nil,	--new_items_track
+								items  = {}		-- notes
+							}
+						end
 
-						found_notes_track = found_channel_track.tracks[note.pitch-34]
+						found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
 					end
 
 					-- can append note right away
@@ -479,7 +510,7 @@ function M2I:Generate(midi_take)
 	local midi_track  = reaper.GetMediaItemTakeInfo_Value(midi_take, "P_TRACK")
 	local track_index = reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
 
-	for _, channel_track in pairs(self.channel_tracks) do
+	for _, channel_group_track in pairs(self.channel_tracks) do
 		-- Stupid GOTOs that i use as `continue` don't let me do the jumps because of local variable being declared
 		-- inbetween the lable and goto call >:(
 		-- I like to do it unsafe, you dick, I know what I'm doing.
@@ -489,38 +520,45 @@ function M2I:Generate(midi_take)
 
 		-- If skipping sampless channels
 		if self.widget.CHB_skip_empty_channels then
-			if self.sources[channel_track.channel] == nil or self.sources[channel_track.channel] == "" then
+			if self.sources[channel_group_track.channel] == nil or self.sources[channel_group_track.channel] == "" then
 				goto cntue_tracks
 			end
 		end
 		-- Skip if empty channel
-		if channel_track.is_empty then
+		if channel_group_track.is_empty then
 			goto cntue_tracks
 		end
 
-		-- Channel Group Track
+		-- Create channel Group Track
 		reaper.InsertTrackAtIndex(track_index - 1, true)
 		new_group_track = reaper.GetTrack(0, track_index - 1)
-		source_name = self.sources[channel_track.channel] and self.sources[channel_track.channel]:match("[^\\]*$") or "BLANK"
-		channel_name = ("CHANNEL_%d - %s"):format(channel_track.channel, source_name)
+		source_name = self.sources[channel_group_track.channel] and self.sources[channel_group_track.channel]:match("[^\\]*$") or "BLANK"
+		channel_name = ("CHANNEL_%d - %s"):format(channel_group_track.channel, source_name)
 		reaper.GetSetMediaTrackInfo_String(new_group_track, "P_NAME", channel_name, true)
-		channel_track.group_track = new_group_track
+		channel_group_track.group_track = new_group_track
 
 		track_index = track_index + 1
 
-		-- Channel Track for Notes
-		for _, notes_track in pairs(channel_track.tracks) do
-			local channel_track_index
+		local channel_track_index = reaper.GetMediaTrackInfo_Value(channel_group_track.group_track, "IP_TRACKNUMBER")
+		-- Create channel Track for Notes
+		for _, notes_track in pairs(channel_group_track.tracks) do
 			local new_items_track
 			local note_track_name = ""
 
-			channel_track_index = reaper.GetMediaTrackInfo_Value(channel_track.group_track, "IP_TRACKNUMBER")
+			if #notes_track.items == 0 then
+				goto skip_note_track1
+			end
+
 			reaper.InsertTrackAtIndex(channel_track_index, true)
 			new_items_track = reaper.GetTrack(0, channel_track_index)
-			if channel_track.channel ~= 10 then
-				note_track_name = ("%d - ITEM - %s"):format(channel_track.channel, source_name)
+			if channel_group_track.channel ~= 10 then
+				note_track_name = ("%d - %s"):format(channel_group_track.channel, source_name)
 			else
-				note_track_name = ("%s - ITEM - %s"):format(ch10_drum_names[notes_track.items[1].pitch], source_name)
+				note_track_name = ("%d: %s - %s"):format(
+					notes_track.items[1].pitch-drums_start_pitch,
+					ch10_drum_names[notes_track.items[1].pitch] or "Unknown",
+					source_name
+				)
 			end
 			reaper.GetSetMediaTrackInfo_String(new_items_track, "P_NAME", note_track_name, true)
 
@@ -536,48 +574,72 @@ function M2I:Generate(midi_take)
 
 	--[[============================================]]--
 
+	-- Sort drums folder
+	if self.channel_tracks[10] then
+		local selected_tracks_count = reaper.CountSelectedTracks(0)
+
+		-- Deselect every track, this gave me so much pain regarding sorting holy shit
+		for i = 1, selected_tracks_count do
+			local sel_track = reaper.GetSelectedTrack(0, i-1)
+			reaper.SetTrackSelected(sel_track, false)
+		end
+
+		local drum_group_index = reaper.GetMediaTrackInfo_Value(self.channel_tracks[10].group_track, "IP_TRACKNUMBER")
+		for i = #self.channel_tracks[10].tracks, 1, -1 do
+			local drum_track_data = self.channel_tracks[10].tracks[i]
+			if drum_track_data.track then
+				reaper.SetTrackSelected(drum_track_data.track, true)
+				reaper.ReorderSelectedTracks(drum_group_index, 0)
+				reaper.SetTrackSelected(drum_track_data.track, false)
+			end
+		end
+	end
+
 	-- Make folders
 	local color_step = 360.0/self.n_channels
-	for index, channel_track in pairs(self.channel_tracks) do
+	local channel_index = 0
+	for _, channel_group_data in pairs(self.channel_tracks) do
 		local color
 
 		-- If skipping sampless channels
 		if self.widget.CHB_skip_empty_channels then
-			if self.sources[channel_track.channel] == nil or self.sources[channel_track.channel] == "" then
+			if self.sources[channel_group_data.channel] == nil or self.sources[channel_group_data.channel] == "" then
 				goto cntn_folders
 			end
 		end
-		if channel_track.is_empty then
+		if channel_group_data.is_empty then
 			goto cntn_folders
 		end
 
-		reaper.SetMediaTrackInfo_Value(channel_track.group_track,		"I_FOLDERDEPTH", 1)
-		reaper.SetMediaTrackInfo_Value(channel_track.tracks[1].track,	"I_FOLDERDEPTH", -1)
+		-- mark group track as a group
+		reaper.SetMediaTrackInfo_Value(channel_group_data.group_track, "I_FOLDERDEPTH", 1)
+
+		local found_last_track_in_group = nil
+		if channel_group_data.channel ~= 10 then
+			found_last_track_in_group = channel_group_data.tracks[1].track
+		else
+			for i = drums_end_pitch-drums_start_pitch+1, 1, -1 do
+				local found_drum = channel_group_data.tracks[i]
+				if found_drum.track ~= nil then
+					found_last_track_in_group = found_drum.track
+					break
+				end
+			end
+		end
+
+		-- mark the last track as an edning track for the group
+		reaper.SetMediaTrackInfo_Value(found_last_track_in_group, "I_FOLDERDEPTH", -1)
 
 		-- Coloring
-		color = hsl2rgb(color_step * (index-1), 1, 0.8, true)
-		reaper.SetTrackColor(channel_track.group_track, color)
-		for _, notes_track in pairs(channel_track.tracks) do
-			reaper.SetTrackColor(notes_track.track, color)
+		color = hsl2rgb(color_step * (channel_index), 1, 0.8, true)
+		reaper.SetTrackColor(channel_group_data.group_track, color)
+		for _, notes_track in pairs(channel_group_data.tracks) do
+			if notes_track.track then
+				reaper.SetTrackColor(notes_track.track, color)
+			end
 		end
-
+		channel_index = channel_index + 1
 		::cntn_folders::
-	end
-
-	-- Reorder Folders according to the sorted table
-	for _, channel_track in pairs(self.channel_tracks) do
-		if channel_track.is_empty then
-			goto cntue_reorder
-		end
-		if not reaper.ValidatePtr(channel_track.group_track, "MediaTrack*") then
-			goto cntue_reorder
-		end
-
-		reaper.SetTrackSelected(channel_track.group_track, true)
-		reaper.ReorderSelectedTracks(track_index-1, 0)
-		reaper.SetTrackSelected(channel_track.group_track, false)
-
-		::cntue_reorder::
 	end
 
 	--[[============================================]]--
@@ -599,18 +661,18 @@ function M2I:Generate(midi_take)
 	--[[============================================]]--
 
 	-- Create the items
-	for _, channel_track in pairs(self.channel_tracks) do
-		if channel_track.is_empty then
+	for _, channel_group_track in pairs(self.channel_tracks) do
+		if channel_group_track.is_empty then
 			goto cnte_create_items
 		end
 		if self.widget.CHB_skip_empty_channels then
-			if self.sources[channel_track.channel] == nil or self.sources[channel_track.channel] == "" then
-				goto skip_empty
+			if self.sources[channel_group_track.channel] == nil or self.sources[channel_group_track.channel] == "" then
+				goto skip_sourceless
 			end
 		end
-		for _, notes_track in pairs(channel_track.tracks) do
+		for _, notes_track in pairs(channel_group_track.tracks) do
 			if not notes_track.track then
-				goto skip_empty
+				goto skip_trackless
 			end
 
 			for _, note in pairs(notes_track.items) do
@@ -639,15 +701,16 @@ function M2I:Generate(midi_take)
 				end
 
 				start_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.start_pos)
-				end_pos	= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.end_pos)
+				end_pos		= reaper.MIDI_GetProjTimeFromPPQPos(midi_take, note.end_pos)
 
 				reaper.SetMediaItemPosition(new_item, start_pos, false)
 				reaper.SetMediaItemLength(new_item, end_pos-start_pos, false)
 
 				self.widget.generated_notes = self.widget.generated_notes + 1
 			end
+			::skip_trackless::
 		end
-		::skip_empty::
+		::skip_sourceless::
 		::cnte_create_items::
 	end
 
@@ -695,7 +758,7 @@ function M2I:UpdateParams()
 			and 0
 			or (self.widget.midi_notes_read + self.widget.midi_notes_channel_destribute) / (self.widget.midi_notes_num * 2)
 
-	self.widget.items_progress = self.widget.generated_notes / self.widget.midi_notes_num
+	self.widget.items_progress = self.widget.generated_notes / self.widget.midi_notes_read
 end
 
 
@@ -721,6 +784,11 @@ function M2I:UI(ctx)
 	--[[============ MIDI LOAD ===========]]--
 	--[[==================================]]--
 
+	ImGui.TextColored(ctx,
+		hsl2rgb(60, 1, 0.8),
+		"If MIDI did not read at 100% then that means you\nhave filtered out Channels in the MIDI Editor."
+	)
+
 	if ImGui.Button(ctx, "Load MIDI") then
 		self.processed_midi_take = self:LoadSelectedMIDI()
 		self.is_midi_loaded = reaper.ValidatePtr(self.processed_midi_take, "MediaItem_Take*")
@@ -729,7 +797,12 @@ function M2I:UI(ctx)
 	ImGui.SameLine(ctx)
 
 	--	void ImGui.ProgressBar(ImGui_Context ctx, number fraction, number size_arg_w = -FLT_MIN, number size_arg_h = 0.0, string overlay = nil)
-	ImGui.ProgressBar(ctx, self.widget.midi_load_progress, 0, 0, " ")
+	ImGui.PushStyleColor(ctx, ImGui.Col_PlotHistogram(), 0xE67A00FF)
+	ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize(), 1)
+	ImGui.ProgressBar(ctx, self.widget.midi_load_progress, 0, 0, ("%d/%d"):format(self.widget.midi_notes_read, self.widget.midi_notes_num))
+	ImGui.PopStyleVar(ctx)
+	ImGui.PopStyleColor(ctx)
+
 	ImGui.SameLine(ctx)
 	ImGui.Text(ctx, ("%%%03d"):format(math.floor(self.widget.midi_load_progress * 100.0)))
 	--ImGui.Spacing(ctx)
@@ -765,7 +838,11 @@ function M2I:UI(ctx)
 
 		ImGui.TableSetColumnIndex(ctx, 2)
 		if ImGui.SmallButton(ctx, "Set") then
-			local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for all Channels", os.getenv("HOMEPATH") or "", "", self.formats_string, false)
+			local retval, fileNames = JS.Dialog_BrowseForOpenFiles(
+					"Source to use for all Channels",
+					os.getenv("HOMEPATH") or "", "",
+					self.formats_string, false
+			)
 			if retval and fileNames ~= "" then
 				for i = 1, 16 do
 					self.sources[i] = fileNames
@@ -801,7 +878,13 @@ function M2I:UI(ctx)
 		end
 
 		ImGui.SameLine(ctx)
-		ImGui.ProgressBar(ctx, self.widget.items_progress, 0, 0, " ")
+
+		ImGui.PushStyleColor(ctx, ImGui.Col_PlotHistogram(), 0xE67A00FF)
+		ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize(), 1)
+			ImGui.ProgressBar(ctx, self.widget.items_progress, 0, 0, ("%d/%d"):format(self.widget.generated_notes, self.widget.midi_notes_read))
+		ImGui.PopStyleColor(ctx)
+		ImGui.PopStyleVar(ctx)
+
 		ImGui.SameLine(ctx)
 		ImGui.Text(ctx, ("%%%03d"):format(math.floor(self.widget.items_progress * 100)))
 
@@ -840,6 +923,7 @@ function M2I:SetupUI()
 	ImGui.SetConfigVar(ctx, ImGui.ConfigVar_WindowsMoveFromTitleBarOnly(), 1)
 	ImGui.SetConfigVar(ctx, ImGui.ConfigVar_WindowsResizeFromEdges(), 1)
 	ImGui.SetConfigVar(ctx, ImGui.ConfigVar_WindowsResizeFromEdges(), 1)
+
 	local window_flags =
 	--ImGui.WindowFlags_None() |
 	ImGui.WindowFlags_NoDocking() |
@@ -847,8 +931,11 @@ function M2I:SetupUI()
 			ImGui.WindowFlags_NoCollapse() |
 			ImGui.WindowFlags_NoSavedSettings() |
 			ImGui.WindowFlags_AlwaysAutoResize()
+
 	function M2I:LoopUI()
+		ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowTitleAlign(), 0.5, 0.5)
 		local visible, open = reaper.ImGui_Begin(ctx, "MIDI -> Items "..self.version, true, window_flags)
+		ImGui.PopStyleVar(ctx)
 		if visible then
 			self:UpdateParams()
 			self:UI(ctx)
