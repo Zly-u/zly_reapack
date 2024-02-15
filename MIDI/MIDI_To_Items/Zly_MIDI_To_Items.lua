@@ -84,15 +84,6 @@ for name, func in pairs(reaper) do
 end
 --local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 
-local function get_script_path()
-	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
-	return filename:match("^(.*)[\\/](.-)$")
-end
-local function add_to_package_path(subpath)
-	package.path = subpath .. "/?.lua;" .. package.path
-end
-add_to_package_path(get_script_path())
-
 --[[===================================================]]--
 
 -- 61 drums
@@ -506,58 +497,6 @@ function M2I:ProcessMIDI(midi_take)
 end
 
 
-_G._print = print
-_G.print = function(...)
-	local string = ""
-	for _, v in pairs({...}) do
-		string = string .. tostring(v) .. "\t"
-	end
-	string = string.."\n"
-	reaper.ShowConsoleMsg(string)
-end
-
-local function printTable(t, show_details)
-	show_details = show_details or false
-	local printTable_cache = {}
-
-	local function sub_printTable(_t, indent, indenty)
-		indenty = indenty or indent
-
-		if printTable_cache[tostring(_t)] then
-			print(indenty .. "*" .. tostring(_t))
-			return
-		end
-
-
-		printTable_cache[tostring(_t)] = true
-		if type(_t) ~= "table" then
-			print(indenty..(show_details and tostring(_t) or ""))
-			return
-		end
-
-
-		for key, val in pairs(_t) do
-			if type(val) == "table" then
-				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
-				sub_printTable(val, indent, indenty..indent)
-				print(indenty .. "}")
-			elseif type(val) == "string" then
-				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
-			else
-				print(indenty .. "[" .. key .. "] => " .. tostring(val))
-			end
-		end
-	end
-
-	if type(t) == "table" then
-		print((show_details and tostring(t)..": " or "").."{")
-		sub_printTable(t, "\t")
-		print("}")
-	else
-		sub_printTable(t, "\t")
-	end
-end
-
 function M2I:Generate(midi_take)
 	self.widget.generated_notes = 0
 
@@ -635,26 +574,23 @@ function M2I:Generate(midi_take)
 
 	--[[============================================]]--
 
-	-- TODO: Sorting drums holy fuck what the fuck
-	print("Sorting drums")
 	-- Sort drums folder
 	if self.channel_tracks[10] then
 		local selected_tracks_count = reaper.CountSelectedTracks(0)
 
-		for i=1, selected_tracks_count do
+		-- Deselect every track, this gave me so much pain regarding sorting holy shit
+		for i = 1, selected_tracks_count do
 			local sel_track = reaper.GetSelectedTrack(0, i-1)
 			reaper.SetTrackSelected(sel_track, false)
 		end
 
-		for i = 1, #self.channel_tracks[10].tracks do
+		local drum_group_index = reaper.GetMediaTrackInfo_Value(self.channel_tracks[10].group_track, "IP_TRACKNUMBER")
+		for i = #self.channel_tracks[10].tracks, 1, -1 do
 			local drum_track_data = self.channel_tracks[10].tracks[i]
 			if drum_track_data.track then
-				local drum_group_index = reaper.GetMediaTrackInfo_Value(self.channel_tracks[10].group_track, "IP_TRACKNUMBER")
-				print(drum_track_data.items[1].pitch-drums_start_pitch)
 				reaper.SetTrackSelected(drum_track_data.track, true)
 				reaper.ReorderSelectedTracks(drum_group_index, 0)
 				reaper.SetTrackSelected(drum_track_data.track, false)
-				break
 			end
 		end
 	end
@@ -684,7 +620,6 @@ function M2I:Generate(midi_take)
 		else
 			for i = drums_end_pitch-drums_start_pitch+1, 1, -1 do
 				local found_drum = channel_group_data.tracks[i]
-				print(i, found_drum)
 				if found_drum.track ~= nil then
 					found_last_track_in_group = found_drum.track
 					break
@@ -706,22 +641,6 @@ function M2I:Generate(midi_take)
 		channel_index = channel_index + 1
 		::cntn_folders::
 	end
-
-	-- Reorder Channel Folders according to the sorted table
-	--for _, channel_group_track in pairs(self.channel_tracks) do
-	--	if channel_group_track.is_empty then
-	--		goto cntue_reorder
-	--	end
-	--	if not reaper.ValidatePtr(channel_group_track.group_track, "MediaTrack*") then
-	--		goto cntue_reorder
-	--	end
-	--
-	--	reaper.SetTrackSelected(channel_group_track.group_track, true)
-	--	reaper.ReorderSelectedTracks(track_index-1, 0)
-	--	reaper.SetTrackSelected(channel_group_track.group_track, false)
-	--
-	--	::cntue_reorder::
-	--end
 
 	--[[============================================]]--
 	--[[============================================]]--
@@ -753,10 +672,9 @@ function M2I:Generate(midi_take)
 		end
 		for _, notes_track in pairs(channel_group_track.tracks) do
 			if not notes_track.track then
-				print("Item create: skip")
 				goto skip_trackless
 			end
-			print("Items:", notes_track.items)
+
 			for _, note in pairs(notes_track.items) do
 				local start_pos
 				local end_pos

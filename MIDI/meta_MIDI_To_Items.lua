@@ -2,7 +2,7 @@
 @metapackage
 @description MIDI -> Items
 @author Zly
-@version 2.3
+@version 2.3.1
 @provides
 	[main] .\MIDI_To_Items\Zly_MIDI_To_Items.lua
 @about
@@ -13,12 +13,20 @@
 	- Creates Channels in their own Folder Tracks for ease of work.
 	- Able to choose a sample source file for each Channel before generating all the Media Items.
 	- Drag and Drop features:
-		- Ability to drop sources into the Channels.
-		- Ability to rearrange the sources in the Channels.
+		* Ability to drop sources into the Channels.
+		* Ability to rearrange the sources in the Channels.
 	- And some more.
 @screenshot
 	Overview https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/img_MIDI2Items.png
-	DnD Preview https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/Preview_DnD_Feature.gif
+@links
+	Author https://twitter.com/zly_u
+	DnD_Preview https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/Preview_DnD_Feature.gif
 @changelog
-	- Added a feature for Channel 10 (drums channel): feature redistributes notes to their own tracks and renames tracks to their corresponding drum names that those pitches are mapped to by the MIDI standard.
+	- Fixed crashing when Channels are filtered out in the MIDI Editor.
+	- Fixed sometimes wacky folder generation.
+	- Fixed poor sorting for drums.
+	- Added Roland GS drums into the drums list.
+	- Added notes counter in the progress bars.
+	- Tweaked style a bit.
+	- Added hint about not entirely loaded MIDI.
 --]]
