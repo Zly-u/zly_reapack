@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="a92a2c17e5d487b3a138fa12569724f294db6300">
+<index version="1" name="NAGASHIZAR" commit="fb4c92a44d81555a382b1edc5f777dd29c4eed49">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -59,14 +59,17 @@
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Items Based On MIDI\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Media Items based on selected MIDI.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each of the item's pitch is based off the first note in the MIDI.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inherits Volume from midi.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each of the item's pitch is relative to the first note in the MIDI.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Channels in their own Folder Tracks for ease of work.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Able to choose a sample source file for each Channel before generating all the Media Items.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab And many more.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and Drop features:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Ability to drop sources into the Channels.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Ability to rearrange the sources in the Channels.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab And some more.\sa180\par}
 }
 ]]></description>
-        <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/img_MIDI2Items.png">Image Preview</link>
+        <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/img_MIDI2Items.png">Overview</link>
+        <link rel="screenshot" href="https://github.com/Zly-u/NAGASHIZAR_reapack/blob/master/MIDI/MIDI_To_Items/Preview_DnD_Feature.gif">DnD Preview</link>
       </metadata>
       <version name="1.2.2" author="Zly" time="2024-02-13T17:06:07Z">
         <changelog><![CDATA[- Fixed sorting when some channels are missing.
@@ -90,6 +93,10 @@
 - Added Drag and Drop for swapping samples.
 - Added Drag and Drop files to assign samples]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/da873c983b106330bc65e87d3cc6d0ba9b5c29b7/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.3" author="Zly" time="2024-02-15T15:46:17Z">
+        <changelog><![CDATA[- Added a feature for Channel 10 (drums channel): feature redistributes notes to their own tracks and renames tracks to their corresponding drum names that those pitches are mapped to by the MIDI standard.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/5d3d90b0c802761a130fd4a2cbef7a7048bff538/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
