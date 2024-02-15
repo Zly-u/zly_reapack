@@ -13,7 +13,7 @@ jobs:
     
     - name: Configure git
       run: |-
-        git config user.name  'ReaTeam Bot'
+        git config user.name  "Nagash"
         git config user.email 'reateam-bot@cfillion.ca'
     
     - name: Install Pandoc
