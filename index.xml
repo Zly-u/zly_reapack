@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="9b49050e3fbd1b1aa0e492c337c8a74e42b6b6f1">
+<index version="1" name="NAGASHIZAR" commit="e06cac371a712456f45905f2bd8cb006e0bb3a2b">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -115,6 +115,10 @@
 - Added option for Disabling Interactive Generation (improves performance)
 - Implemented Deps checker.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/fc9ed07dc73523aff50d5bcf50e46a382bf8da83/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.4.1" author="Zly" time="2024-02-16T23:14:24Z">
+        <changelog><![CDATA[- Forgot to add the redirection to the ReaPack's Website if the user doesn't have one lol.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/e06cac371a712456f45905f2bd8cb006e0bb3a2b/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
