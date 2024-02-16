@@ -1,12 +1,12 @@
 --[[
 @metapackage
-@description MIDI -> Items
+@description MIDI To Items Converter
 @author Zly
-@version 2.3.1
+@version 2.4
 @provides
 	[main] .\MIDI_To_Items\Zly_MIDI_To_Items.lua
 @about
-	# Items Based On MIDI
+	# MIDI To Items Converter
 
 	- Creates Media Items based on selected MIDI.
 	- Each of the item's pitch is relative to the first note in the MIDI.
@@ -24,11 +24,7 @@
 @donation
 	Donate https://boosty.to/zly
 @changelog
-	- Fixed crashing when Channels are filtered out in the MIDI Editor.
-	- Fixed sometimes wacky folder generation.
-	- Fixed poor sorting for drums.
-	- Added Roland GS drums into the drums list.
-	- Added notes counter in the progress bars.
-	- Tweaked style a bit.
-	- Added hint about not entirely loaded MIDI.
+	- Improved algorithm so it's much more faster.
+	- Added option for Disabling Interactive Generation (improves performance)
+	- Implemented Deps checker.
 --]]

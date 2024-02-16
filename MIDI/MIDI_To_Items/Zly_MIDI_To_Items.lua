@@ -1,5 +1,87 @@
 -- @noindex
 
+local function MultLineStringConstructor(...)
+	local strings_array = {...}
+	local compiled_string = ""
+	for index, line in pairs(strings_array) do
+		compiled_string =
+			compiled_string
+			..line
+			..(index ~= #strings_array and "\n" or "")
+	end
+	return compiled_string
+end
+
+local DepsChecker = {
+	libs_to_check = {},
+	builded_reapack_deps_list = "",
+	builded_reapack_search_filter = "",
+	-----------------------------------------------------
+	AddDepsToCheck = function(self, _func, _filter)
+		table.insert(self.libs_to_check, {
+			func	= _func,
+			filter	= _filter
+		})
+	end,
+	CheckLibs = function(self)
+		for index, lib in pairs(self.libs_to_check) do
+			if not lib.func then
+				self.builded_reapack_deps_list =
+					self.builded_reapack_deps_list
+					..'\t'..lib.filter
+					..(index ~= #self.libs_to_check and '\n' or "")
+
+				self.builded_reapack_search_filter =
+				self.builded_reapack_search_filter
+						..lib.filter
+						..(index ~= #self.libs_to_check and " OR " or "")
+			end
+		end
+
+		-- if empty then it's all good
+		if self.builded_reapack_search_filter == "" then
+			return true
+		end
+
+		-- I didn't wanted to write in [[str]] for a multiline string cuz it sucks to read in code
+		-- and I didn't wanted to make one long ass single line string with '\n' at random places
+		-- this way i can see the dimensions of the text for a proper formating
+		local error_msg = MultLineStringConstructor(
+				"Please install next Packages through ReaPack",
+				"In Order for the script to work:\n",
+				self.builded_reapack_deps_list,
+				"\nAfter closing this window ReaPack's Package Browser",
+				"will open with the dependencies you need!"
+		)
+
+		reaper.MB(error_msg, "Error", 0)
+
+		if not reaper.ReaPack_BrowsePackages then
+			local reapack_error = MultLineStringConstructor(
+					"Someone told me you don't have ReaPack to get the deps from...",
+					"After closing this window I will open the Official ReaPack website",
+					"for you to download it from :)"
+			)
+			reaper.MB(reapack_error, "What the hell...", 0)
+			return false
+		end
+
+		reaper.ReaPack_BrowsePackages(self.builded_reapack_search_filter)
+
+		return false
+	end,
+
+	CheckIfIsAllInstalled = function(self)
+		return self.is_all_good
+	end
+}
+
+DepsChecker:AddDepsToCheck(reaper.JS_Dialog_BrowseForOpenFiles, "js_ReaScriptAPI")
+DepsChecker:AddDepsToCheck(reaper.ImGui_Begin, "ReaImGui")
+if not DepsChecker:CheckLibs() then
+	return
+end
+
 --[[===================================================]]--
 --[[===================================================]]--
 --[[===================================================]]--
@@ -86,6 +168,24 @@ end
 
 --[[===================================================]]--
 
+local function ImGui_HelpMarker(ctx, desc)
+	ImGui.SameLine(ctx)
+	ImGui.TextDisabled(ctx, "(?)")
+
+	if not ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort()) then
+		return
+	end
+
+	if ImGui.BeginTooltip(ctx) then
+		ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+		ImGui.Text(ctx, desc)
+		ImGui.PopTextWrapPos(ctx)
+		ImGui.EndTooltip(ctx)
+	end
+end
+
+--[[===================================================]]--
+
 -- 61 drums
 local drums_start_pitch = 27-1
 local drums_end_pitch = 87-1
@@ -160,10 +260,10 @@ local ch10_drum_names = {
 --[[===================================================]]--
 
 local M2I = {
-	version = "2.3.1",
+	version = "2.3.2",
 
 	sources = {},
-	chords  = {},
+	chords_channels = {},
 	channel_tracks = {},
 
 	n_channels = 0,
@@ -183,7 +283,7 @@ local M2I = {
 	},
 
 	ResetAll = function(self)
-		self.chords = {}
+		self.chords_channels = {}
 		self.channel_tracks = {}
 		self.n_channels = 0
 		self.processed_midi_take = nil
@@ -208,6 +308,9 @@ local M2I = {
 		CHB_skip_empty_channels_click	= false,
 		CHB_skip_empty_channels			= false,
 		-------------------------------------
+		CHB_disable_interactive_click	= false,
+		CHB_disable_interactive			= true,
+		-------------------------------------
 		midi_notes_num					= 0,
 		midi_notes_read					= 0,
 		midi_notes_channel_destribute	= 0,
@@ -220,10 +323,10 @@ local M2I = {
 
 	table_content = {
 		-- Channel
-		function(self, _ctx, index, channel_data)
+		function(self, _ctx, index, channel_track_data)
 			local color = 0x888888FF
-			if channel_data then
-				color = channel_data.is_empty and 0x888888FF or hsl2rgb(120, 1, 0.8)
+			if channel_track_data then
+				color = #channel_track_data.tracks == 0 and 0x888888FF or hsl2rgb(120, 1, 0.8)
 			end
 			ImGui.TextColored(_ctx, color, index)
 		end,
@@ -321,21 +424,55 @@ function M2I:ProcessMIDI(midi_take)
 	--[[============================================]]--
 
 	-- Detecting overlapping notes
-	local max_concurrent_notes = 1
-	local current_chord		= {}
+	self.chords_channels = {}
+	for i = 1, 16 do
+		self.chords_channels[i] = {
+			base_pitch = 127,
+			chord_note_index = 1,
+			found_overlap = false,
+			chords = {}
+		}
+	end
+
 	for id = 0, notes_num - 1 do
 		local current_note = GetNoteData(midi_take, id) -- Can be nil if the notes are filtered out in the editor
 
-		-- Go through all notes in the chord set (if not empty)
-		local chord_note_index = 1
-		local found_overlap = false
+		local current_channel
+		local current_chords_list
+		local current_chord
 
-		if current_note == nil then
-			goto skip_filtered_out_note
+		if current_note == nil then goto skip end
+
+		current_channel		= self.chords_channels[current_note.channel]
+		current_chords_list	= current_channel.chords
+		current_chord		= current_chords_list[#current_chords_list]
+
+
+		-- create a set if none exist for the channel
+		-- Or if it's at a drum track, there we don't care about chords.
+		if current_chord == nil or current_channel.channel == 10 then
+			-- Drum track
+			if current_channel.channel == 10 then
+				local drum_pitch = current_note.pitch-drums_start_pitch
+				current_chord = current_chords_list[drum_pitch]
+				if current_chord == nil then
+					current_chords_list[drum_pitch] = {}
+					current_chord = current_chords_list[drum_pitch]
+				end
+			else
+				table.insert(current_chords_list, {})
+				current_chord = current_chords_list[#current_chords_list]
+			end
+
+			table.insert(current_chord, current_note)
+
+			goto skip
 		end
 
-		while chord_note_index <= #current_chord do
-			local chord_note = current_chord[chord_note_index]
+		-- Overlap check with each note in the current chord
+		while current_channel.chord_note_index <= #current_chord do
+			local chord_note = current_chord[current_channel.chord_note_index]
+			current_channel.found_overlap = false
 
 			if current_note.id ~= chord_note.id then
 				local isNote_after_start = current_note.start_pos >= chord_note.start_pos
@@ -344,37 +481,55 @@ function M2I:ProcessMIDI(midi_take)
 				-- If the note overlaps - we continue constructing chord set
 				if isNote_after_start and isNote_before_end then
 					table.insert(current_chord, current_note)
-
-					if #current_chord > max_concurrent_notes then
-						max_concurrent_notes = #current_chord
-					end
-
-					found_overlap = true
-
+					current_channel.found_overlap = true
 					break
 				end
 			end
 
-			chord_note_index = chord_note_index + 1
+			current_channel.chord_note_index = current_channel.chord_note_index + 1
 		end
 
-		-- else we make a new chord set
-		if not found_overlap and #current_chord > 0 then
-			table.insert(self.chords, current_chord)
-			current_chord = {}
+		-- If no note overlaping then we make a new set
+		if not current_channel.found_overlap and #current_chord > 0 then
+			current_channel.chord_note_index	= 1
+			current_channel.found_overlap		= false
+
+			table.insert(current_chords_list, {})
+			current_chord = current_chords_list[#current_chords_list]
 		end
 
 		if #current_chord == 0 then
 			table.insert(current_chord, current_note)
 		end
 
+		::skip::
 		self.widget.midi_notes_read = self.widget.midi_notes_read + 1
-
-		::skip_filtered_out_note::
 	end
 
-	-- Insert the last set.
-	table.insert(self.chords, current_chord)
+
+	-- Sort chords and assign base pitch
+	for channel_index, chords_channel in pairs(self.chords_channels) do
+		if #chords_channel.chords == 0 then goto skip_sort_for_empty end
+
+		if channel_index == 10 then
+			chords_channel.base_pitch = -1 -- Means we don't assign pitch
+			goto skip_sort_for_drums
+		end
+
+		for _, chord in pairs(chords_channel.chords) do
+			if #chord > 1 then
+				table.sort(chord, function(A, B)
+					return A.pitch < B.pitch
+				end)
+			end
+		end
+
+		-- Set the base pitch for each channel
+		chords_channel.base_pitch = chords_channel.chords[1][1].pitch
+
+		::skip_sort_for_drums::
+		::skip_sort_for_empty::
+	end
 
 	--[[============================================]]--
 	--[[============================================]]--
@@ -387,111 +542,95 @@ function M2I:ProcessMIDI(midi_take)
 
 	--[[============================================]]--
 	--[[============================================]]--
-
+	---[=[
+	-- Search for a free spot in tracks for each Note Item
 	self.n_channels = 0
-	for _, chord in pairs(self.chords) do
-		for _, note in pairs(chord) do
-			-- Go through tracks and find valid position
-			local track_search_index = 1
-			while true do
-				local found_channel_group_track = self.channel_tracks[note.channel]
-				local found_notes_track = nil
+	for channel_index, chords_channel in pairs(self.chords_channels) do -- [1, 16]
+		for _, chord in pairs(chords_channel.chords) do
+			for _, note in pairs(chord) do
+				-- Go through tracks and find valid position
+				local track_search_index = 1
+				while true do
+					local found_channel_group_track = self.channel_tracks[channel_index]
+					local found_notes_track = nil
 
-				-- Create group track for a channel if doesn't exist already
-				if found_channel_group_track == nil then
-					self.channel_tracks[note.channel] = {
-						channel = note.channel,
-						group_track = nil, 		--new_group_track,
-						tracks = {}
-					}
+					-- Create Channel's Group track if doesn't exist already
+					if found_channel_group_track == nil then
+						self.channel_tracks[channel_index] = {
+							base_pitch = chords_channel.base_pitch,
+							channel = channel_index,
+							group_track = nil, 		--new_group_track,
+							tracks = {}
+						}
 
-					found_channel_group_track = self.channel_tracks[note.channel]
+						found_channel_group_track = self.channel_tracks[channel_index]
 
-					self.n_channels = self.n_channels + 1
-				end
+						self.n_channels = self.n_channels + 1
+					end
 
-				if note.channel ~= 10 then
-					found_notes_track = found_channel_group_track.tracks[track_search_index]
-				else
-					found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
-				end
-
-				-- If next track to check for valid positions
-				-- doesn't exist then we make it
-				if found_notes_track == nil then
 					if note.channel ~= 10 then
-						table.insert(found_channel_group_track.tracks, {
-								parent = found_channel_group_track,
-								track  = nil, --new_items_track,
-								items  = {} -- notes
-							}
-						)
-
 						found_notes_track = found_channel_group_track.tracks[track_search_index]
 					else
-						for i = 1, drums_end_pitch - drums_start_pitch + 1 do
-							found_channel_group_track.tracks[i] = {
-								parent = found_channel_group_track.group_track,
-								track  = nil,	--new_items_track
-								items  = {}		-- notes
-							}
-						end
-
 						found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
 					end
 
-					-- can append note right away
-					table.insert(found_notes_track.items, note)
-					break
-				end
+					-- If next track to check for valid positions
+					-- doesn't exist then we make it
+					if found_notes_track == nil then
+						if note.channel ~= 10 then
+							table.insert(found_channel_group_track.tracks, {
+								track = nil, --new_items_track,
+								items = {}	 -- notes
+							})
 
-				if note.channel ~= 10 then
-					-- Check if it overlaps with anything
-					-- it better damn not be >:C
-					local isOverlaping = false
-					for _, item in pairs(found_notes_track.items) do
-						local isAtStart = note.start_pos >= item.start_pos
-						local isBeforeEnd = note.start_pos < item.end_pos
-						if isAtStart and isBeforeEnd then
-							isOverlaping = true
-							break
+							found_notes_track = found_channel_group_track.tracks[track_search_index]
+						else -- For drums
+							for i = 1, drums_end_pitch - drums_start_pitch + 1 do
+								found_channel_group_track.tracks[i] = {
+									track = nil, --new_items_track
+									items = {}	 -- notes
+								}
+							end
+
+							found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
 						end
-					end
 
-					if not isOverlaping then
+						-- can append note right away
 						table.insert(found_notes_track.items, note)
 						break
 					end
 
-					-- else: continue the search for a free spot, if not a drum channel
-					track_search_index = track_search_index + 1
-				else -- if a drum then just insert, drum notes never overlap.
-					table.insert(found_notes_track.items, note)
-					break
+					if note.channel ~= 10 then
+						-- Check if it overlaps with anything
+						-- it better damn not be >:C
+						local isOverlaping = false
+						for _, existing_note in pairs(found_notes_track.items) do
+							local case_1 = note.start_pos >= existing_note.start_pos and note.start_pos < existing_note.end_pos -- If the start of our new note is inside of another note
+							local case_2 = note.end_pos > existing_note.start_pos and note.end_pos <= existing_note.end_pos		-- If the end   of our new note is inside of another note
+							local case_3 = existing_note.start_pos >= note.start_pos and existing_note.end_pos <= note.end_pos	-- If other note is inside our new note
+
+							if case_1 or case_2 or case_3 then
+								isOverlaping = true
+								break
+							end
+						end
+
+						if not isOverlaping then
+							table.insert(found_notes_track.items, note)
+							break
+						end
+
+						-- else: continue the search for a free spot, if not a drum channel
+						track_search_index = track_search_index + 1
+					else -- if a drum then just insert, drum notes never overlap.
+						table.insert(found_notes_track.items, note)
+						break
+					end
 				end
+				self.widget.midi_notes_channel_destribute = self.widget.midi_notes_channel_destribute + 1
 			end
-			self.widget.midi_notes_channel_destribute = self.widget.midi_notes_channel_destribute + 1
 		end
 	end
-
-	--[[============================================]]--
-	--[[============================================]]--
-
-	-- Sort table
-
-	-- Fill up so the sort can work
-	for i = 1 , 16 do
-		if self.channel_tracks[i] == nil then
-			self.channel_tracks[i] = {
-				channel = i,
-				is_empty = true
-			}
-		end
-	end
-
-	table.sort(self.channel_tracks, function(channelA, channelB)
-		return channelA.channel < channelB.channel
-	end)
 
 	return true
 end
@@ -510,6 +649,10 @@ function M2I:Generate(midi_take)
 	local midi_track  = reaper.GetMediaItemTakeInfo_Value(midi_take, "P_TRACK")
 	local track_index = reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
 
+	if self.widget.CHB_disable_interactive then
+		reaper.PreventUIRefresh(1)
+	end
+
 	for _, channel_group_track in pairs(self.channel_tracks) do
 		-- Stupid GOTOs that i use as `continue` don't let me do the jumps because of local variable being declared
 		-- inbetween the lable and goto call >:(
@@ -525,7 +668,7 @@ function M2I:Generate(midi_take)
 			end
 		end
 		-- Skip if empty channel
-		if channel_group_track.is_empty then
+		if #channel_group_track.tracks == 0 then
 			goto cntue_tracks
 		end
 
@@ -598,28 +741,28 @@ function M2I:Generate(midi_take)
 	-- Make folders
 	local color_step = 360.0/self.n_channels
 	local channel_index = 0
-	for _, channel_group_data in pairs(self.channel_tracks) do
+	for _, channel_track_data in pairs(self.channel_tracks) do
 		local color
 
 		-- If skipping sampless channels
 		if self.widget.CHB_skip_empty_channels then
-			if self.sources[channel_group_data.channel] == nil or self.sources[channel_group_data.channel] == "" then
+			if self.sources[channel_track_data.channel] == nil or self.sources[channel_track_data.channel] == "" then
 				goto cntn_folders
 			end
 		end
-		if channel_group_data.is_empty then
+		if #channel_track_data.tracks == 0 then
 			goto cntn_folders
 		end
 
 		-- mark group track as a group
-		reaper.SetMediaTrackInfo_Value(channel_group_data.group_track, "I_FOLDERDEPTH", 1)
+		reaper.SetMediaTrackInfo_Value(channel_track_data.group_track, "I_FOLDERDEPTH", 1)
 
 		local found_last_track_in_group = nil
-		if channel_group_data.channel ~= 10 then
-			found_last_track_in_group = channel_group_data.tracks[1].track
+		if channel_track_data.channel ~= 10 then
+			found_last_track_in_group = channel_track_data.tracks[1].track
 		else
-			for i = drums_end_pitch-drums_start_pitch+1, 1, -1 do
-				local found_drum = channel_group_data.tracks[i]
+			for i = drums_end_pitch-drums_start_pitch + 1, 1, -1 do
+				local found_drum = channel_track_data.tracks[i]
 				if found_drum.track ~= nil then
 					found_last_track_in_group = found_drum.track
 					break
@@ -632,8 +775,8 @@ function M2I:Generate(midi_take)
 
 		-- Coloring
 		color = hsl2rgb(color_step * (channel_index), 1, 0.8, true)
-		reaper.SetTrackColor(channel_group_data.group_track, color)
-		for _, notes_track in pairs(channel_group_data.tracks) do
+		reaper.SetTrackColor(channel_track_data.group_track, color)
+		for _, notes_track in pairs(channel_track_data.tracks) do
 			if notes_track.track then
 				reaper.SetTrackColor(notes_track.track, color)
 			end
@@ -645,24 +788,9 @@ function M2I:Generate(midi_take)
 	--[[============================================]]--
 	--[[============================================]]--
 
-	-- Detect the lowest pitch in the first potential chord
-	local first_base_pitch = 127
-	if #self.chords[1] > 1 then
-		for _, note in pairs(self.chords[1]) do
-			if note.pitch < first_base_pitch then
-				first_base_pitch = note.pitch
-			end
-		end
-	else
-		first_base_pitch = self.chords[1][1].pitch
-	end
-
-	--[[============================================]]--
-	--[[============================================]]--
-
 	-- Create the items
 	for _, channel_group_track in pairs(self.channel_tracks) do
-		if channel_group_track.is_empty then
+		if #channel_group_track.tracks == 0 then
 			goto cnte_create_items
 		end
 		if self.widget.CHB_skip_empty_channels then
@@ -685,8 +813,10 @@ function M2I:Generate(midi_take)
 				new_item_take = reaper.AddTakeToMediaItem(new_item)
 
 				--Applying params
-				reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
-				reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", note.pitch - first_base_pitch)
+				if channel_group_track.base_pitch ~= -1 then
+					reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
+					reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", note.pitch - channel_group_track.base_pitch)
+				end
 				if self.widget.CHB_inherit_vol then
 					reaper.SetMediaItemInfo_Value(new_item, "D_VOL", note.vel/127.0)
 				end
@@ -891,6 +1021,8 @@ function M2I:UI(ctx)
 		self.widget.CHB_blank_items_click, self.widget.CHB_blank_items = ImGui.Checkbox(ctx, "Blank Items", self.widget.CHB_blank_items)
 		ImGui.SameLine(ctx)
 		self.widget.CHB_skip_empty_channels_click, self.widget.CHB_skip_empty_channels = ImGui.Checkbox(ctx, "Skip Sampless channels", self.widget.CHB_skip_empty_channels)
+		self.widget.CHB_disable_interactive_click, self.widget.CHB_disable_interactive = ImGui.Checkbox(ctx, "Disable Interactive Generation", self.widget.CHB_disable_interactive)
+		ImGui_HelpMarker(ctx, "Disabling Interactive Generation improves generation speed,\ne.g. less work for the DAW to do in order to just create the Items and Tracks.")
 	else
 		if self.is_midi_loaded then
 			self.is_midi_loaded = false
