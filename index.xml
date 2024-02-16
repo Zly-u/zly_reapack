@@ -111,7 +111,7 @@
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/8e6d4696e8c3ce2e9ea4c93077ac15bcb0d933bf/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.4" author="Zly" time="2024-02-16T22:52:25Z">
-        <changelog><![CDATA[- Improved algorithm so it's much more faster.
+        <changelog><![CDATA[- Improved algorithm so it's much faster.
 - Added option for Disabling Interactive Generation (improves performance)
 - Implemented Deps checker.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/fc9ed07dc73523aff50d5bcf50e46a382bf8da83/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
