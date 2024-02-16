@@ -160,10 +160,10 @@ local ch10_drum_names = {
 --[[===================================================]]--
 
 local M2I = {
-	version = "2.3.1",
+	version = "2.3.2",
 
 	sources = {},
-	chords  = {},
+	chords_channels = {},
 	channel_tracks = {},
 
 	n_channels = 0,
@@ -373,9 +373,9 @@ function M2I:ProcessMIDI(midi_take)
 	--[[============================================]]--
 
 	-- Detecting overlapping notes
-	self.chords = {}
+	self.chords_channels = {}
 	for i = 1, 16 do
-		self.chords[i] = {
+		self.chords_channels[i] = {
 			base_pitch = 127,
 			chord_note_index = 1,
 			found_overlap = false,
@@ -392,16 +392,30 @@ function M2I:ProcessMIDI(midi_take)
 
 		if current_note == nil then goto skip end
 
-		current_channel		= self.chords[current_note.channel]
+		current_channel		= self.chords_channels[current_note.channel]
 		current_chords_list	= current_channel.chords
 		current_chord		= current_chords_list[#current_chords_list]
 
 
 		-- create a set if none exist for the channel
-		if current_chord == nil then
-			table.insert(current_chords_list, {})
-			current_chord = current_chords_list[#current_chords_list]
+		-- Or if it's at a drum track, there we don't care about chords.
+		-- TODO: Sort Drum Notes to individual chords for a potential simplicity?
+		if current_chord == nil or current_channel.channel == 10 then
+			-- Drum track
+			if current_channel.channel == 10 then
+				local drum_pitch = current_note.pitch-drums_start_pitch
+				current_chord = current_chords_list[drum_pitch]
+				if current_chord == nil then
+					current_chords_list[drum_pitch] = {}
+					current_chord = current_chords_list[drum_pitch]
+				end
+			else
+				table.insert(current_chords_list, {})
+				current_chord = current_chords_list[#current_chords_list]
+			end
+
 			table.insert(current_chord, current_note)
+
 			goto skip
 		end
 
@@ -443,17 +457,30 @@ function M2I:ProcessMIDI(midi_take)
 		self.widget.midi_notes_read = self.widget.midi_notes_read + 1
 	end
 
-	-- Sort chords
 
-	-- Insert the last set.
-	--table.insert(self.chords, current_chord)
-	--for index, channel in pairs(chord_channels) do
-	--	for _, chord in pairs(channel.chords) do
-	--		for note_index, note in pairs(chord) do
-	--			print(index, note_index, note.pitch)
-	--		end
-	--	end
-	--end
+	-- Sort chords and assign base pitch
+	for _, chords_channel in pairs(self.chords_channels) do
+		if #chords_channel.chords == 0 then goto skip_sort_for_empty end
+
+		if chords_channel.channel == 10 then
+			chords_channel.base_pitch = -1 -- Means we don't assign pitch
+			goto skip_sort_for_drums
+		end
+
+		for _, chord in pairs(chords_channel.chords) do
+			if #chord > 1 then
+				table.sort(chord, function(A, B)
+					return A.pitch < B.pitch
+				end)
+			end
+		end
+
+		-- Set the base pitch for each channel
+		chords_channel.base_pitch = chords_channel.chords[1][1].pitch
+
+		::skip_sort_for_drums::
+		::skip_sort_for_empty::
+	end
 
 	--[[============================================]]--
 	--[[============================================]]--
@@ -467,6 +494,7 @@ function M2I:ProcessMIDI(midi_take)
 	--[[============================================]]--
 	--[[============================================]]--
 	--[=[
+	-- Search for a free spot in tracks
 	self.n_channels = 0
 	for _, chords_channel in pairs(self.chords) do
 		for _, chord in pairs(chords_channel.chords) do
@@ -729,14 +757,14 @@ function M2I:Generate(midi_take)
 
 	-- Detect the lowest pitch in the first potential chord
 	local first_base_pitch = 127
-	if #self.chords[1] > 1 then
-		for _, note in pairs(self.chords[1]) do
+	if #self.chords_channels[1] > 1 then
+		for _, note in pairs(self.chords_channels[1]) do
 			if note.pitch < first_base_pitch then
 				first_base_pitch = note.pitch
 			end
 		end
 	else
-		first_base_pitch = self.chords[1][1].pitch
+		first_base_pitch = self.chords_channels[1][1].pitch
 	end
 
 	--[[============================================]]--
