@@ -1,5 +1,19 @@
 -- @noindex
 
+local function URL_Openner(URL)
+	local OS = ({
+		Win32 = "start",
+		Win64 = "start",
+		OSX32 = "open",
+		OSX64 = "open",
+		["macOS-arm64"] = "open",
+
+		Other = "start",
+	})[reaper.GetOS()]
+
+	os.execute(OS .. " " .. URL)
+end
+
 local function MultLineStringConstructor(...)
 	local strings_array = {...}
 	local compiled_string = ""
@@ -60,9 +74,10 @@ local DepsChecker = {
 			local reapack_error = MultLineStringConstructor(
 					"Someone told me you don't have ReaPack to get the deps from...",
 					"After closing this window I will open the Official ReaPack website",
-					"for you to download it from :)"
+					"\"https://reapack.com/\" for you to download it from :)"
 			)
 			reaper.MB(reapack_error, "What the hell...", 0)
+			URL_Openner("https://reapack.com/")
 			return false
 		end
 
