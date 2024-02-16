@@ -183,7 +183,7 @@ local M2I = {
 	},
 
 	ResetAll = function(self)
-		self.chords = {}
+		self.chords_channels = {}
 		self.channel_tracks = {}
 		self.n_channels = 0
 		self.processed_midi_take = nil
@@ -419,7 +419,6 @@ function M2I:ProcessMIDI(midi_take)
 			goto skip
 		end
 
-
 		-- Overlap check with each note in the current chord
 		while current_channel.chord_note_index <= #current_chord do
 			local chord_note = current_chord[current_channel.chord_note_index]
@@ -493,27 +492,27 @@ function M2I:ProcessMIDI(midi_take)
 
 	--[[============================================]]--
 	--[[============================================]]--
-	--[=[
-	-- Search for a free spot in tracks
+	---[=[
+	-- Search for a free spot in tracks for each Note Item
 	self.n_channels = 0
-	for _, chords_channel in pairs(self.chords) do
+	for channel_index, chords_channel in pairs(self.chords_channels) do -- [1, 16]
 		for _, chord in pairs(chords_channel.chords) do
 			for _, note in pairs(chord) do
 				-- Go through tracks and find valid position
 				local track_search_index = 1
 				while true do
-					local found_channel_group_track = self.channel_tracks[note.channel]
+					local found_channel_group_track = self.channel_tracks[channel_index]
 					local found_notes_track = nil
 
-					-- Create group track for a channel if doesn't exist already
+					-- Create Channel's Group track if doesn't exist already
 					if found_channel_group_track == nil then
-						self.channel_tracks[chords_channel.channel] = {
-							channel = note.channel,
+						self.channel_tracks[channel_index] = {
+							channel = channel_index,
 							group_track = nil, 		--new_group_track,
 							tracks = {}
 						}
 
-						found_channel_group_track = self.channel_tracks[note.channel]
+						found_channel_group_track = self.channel_tracks[channel_index]
 
 						self.n_channels = self.n_channels + 1
 					end
@@ -529,19 +528,16 @@ function M2I:ProcessMIDI(midi_take)
 					if found_notes_track == nil then
 						if note.channel ~= 10 then
 							table.insert(found_channel_group_track.tracks, {
-									parent = found_channel_group_track,
-									track  = nil, --new_items_track,
-									items  = {} -- notes
-								}
-							)
+								track = nil, --new_items_track,
+								items = {}	 -- notes
+							})
 
 							found_notes_track = found_channel_group_track.tracks[track_search_index]
-						else
+						else -- For drums
 							for i = 1, drums_end_pitch - drums_start_pitch + 1 do
 								found_channel_group_track.tracks[i] = {
-									parent = found_channel_group_track.group_track,
-									track  = nil,	--new_items_track
-									items  = {}		-- notes
+									track = nil, --new_items_track
+									items = {}	 -- notes
 								}
 							end
 
@@ -587,20 +583,20 @@ function M2I:ProcessMIDI(midi_take)
 	--[[============================================]]--
 
 	-- Sort table
-
+	-- TODO: get rid of such logic
 	-- Fill up so the sort can work
-	for i = 1 , 16 do
-		if self.channel_tracks[i] == nil then
-			self.channel_tracks[i] = {
-				channel = i,
-				is_empty = true
-			}
-		end
-	end
+	--for i = 1 , 16 do
+	--	self.channel_tracks[i] =
+	--		self.channel_tracks[i]
+	--		or {
+	--			channel = i,
+	--			is_empty = true
+	--		}
+	--end
 
-	table.sort(self.channel_tracks, function(channelA, channelB)
-		return channelA.channel < channelB.channel
-	end)
+	--table.sort(self.channel_tracks, function(channelA, channelB)
+	--	return channelA.channel < channelB.channel
+	--end)
 	--]=]
 
 	return true
