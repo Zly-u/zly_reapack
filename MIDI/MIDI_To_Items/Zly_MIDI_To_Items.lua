@@ -310,6 +310,58 @@ local M2I = {
 --[[===================================================]]--
 --[[===================================================]]--
 
+_G._print = print
+_G.print = function(...)
+	local string = ""
+	for _, v in pairs({...}) do
+		string = string .. tostring(v) .. "\t"
+	end
+	string = string.."\n"
+	reaper.ShowConsoleMsg(string)
+end
+
+local function printTable(t, show_details)
+	show_details = show_details or false
+	local printTable_cache = {}
+
+	local function sub_printTable(_t, indent, indenty)
+		indenty = indenty or indent
+
+		if printTable_cache[tostring(_t)] then
+			print(indenty .. "*" .. tostring(_t))
+			return
+		end
+
+
+		printTable_cache[tostring(_t)] = true
+		if type(_t) ~= "table" then
+			print(indenty..(show_details and tostring(_t) or ""))
+			return
+		end
+
+
+		for key, val in pairs(_t) do
+			if type(val) == "table" then
+				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
+				sub_printTable(val, indent, indenty..indent)
+				print(indenty .. "}")
+			elseif type(val) == "string" then
+				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
+			else
+				print(indenty .. "[" .. key .. "] => " .. tostring(val))
+			end
+		end
+	end
+
+	if type(t) == "table" then
+		print((show_details and tostring(t)..": " or "").."{")
+		sub_printTable(t, "\t")
+		print("}")
+	else
+		sub_printTable(t, "\t")
+	end
+end
+
 function M2I:ProcessMIDI(midi_take)
 	reaper.ClearConsole()
 
@@ -321,21 +373,43 @@ function M2I:ProcessMIDI(midi_take)
 	--[[============================================]]--
 
 	-- Detecting overlapping notes
-	local max_concurrent_notes = 1
-	local current_chord		= {}
+	self.chords = {}
+	for i = 1, 16 do
+		self.chords[i] = {
+			base_pitch = 127,
+			chord_note_index = 1,
+			found_overlap = false,
+			chords = {}
+		}
+	end
+
 	for id = 0, notes_num - 1 do
 		local current_note = GetNoteData(midi_take, id) -- Can be nil if the notes are filtered out in the editor
 
-		-- Go through all notes in the chord set (if not empty)
-		local chord_note_index = 1
-		local found_overlap = false
+		local current_channel
+		local current_chords_list
+		local current_chord
 
-		if current_note == nil then
-			goto skip_filtered_out_note
+		if current_note == nil then goto skip end
+
+		current_channel		= self.chords[current_note.channel]
+		current_chords_list	= current_channel.chords
+		current_chord		= current_chords_list[#current_chords_list]
+
+
+		-- create a set if none exist for the channel
+		if current_chord == nil then
+			table.insert(current_chords_list, {})
+			current_chord = current_chords_list[#current_chords_list]
+			table.insert(current_chord, current_note)
+			goto skip
 		end
 
-		while chord_note_index <= #current_chord do
-			local chord_note = current_chord[chord_note_index]
+
+		-- Overlap check with each note in the current chord
+		while current_channel.chord_note_index <= #current_chord do
+			local chord_note = current_chord[current_channel.chord_note_index]
+			current_channel.found_overlap = false
 
 			if current_note.id ~= chord_note.id then
 				local isNote_after_start = current_note.start_pos >= chord_note.start_pos
@@ -344,37 +418,42 @@ function M2I:ProcessMIDI(midi_take)
 				-- If the note overlaps - we continue constructing chord set
 				if isNote_after_start and isNote_before_end then
 					table.insert(current_chord, current_note)
-
-					if #current_chord > max_concurrent_notes then
-						max_concurrent_notes = #current_chord
-					end
-
-					found_overlap = true
-
+					current_channel.found_overlap = true
 					break
 				end
 			end
 
-			chord_note_index = chord_note_index + 1
+			current_channel.chord_note_index = current_channel.chord_note_index + 1
 		end
 
-		-- else we make a new chord set
-		if not found_overlap and #current_chord > 0 then
-			table.insert(self.chords, current_chord)
-			current_chord = {}
+		-- If no note overlaping then we make a new set
+		if not current_channel.found_overlap and #current_chord > 0 then
+			current_channel.chord_note_index	= 1
+			current_channel.found_overlap		= false
+
+			table.insert(current_chords_list, {})
+			current_chord = current_chords_list[#current_chords_list]
 		end
 
 		if #current_chord == 0 then
 			table.insert(current_chord, current_note)
 		end
 
+		::skip::
 		self.widget.midi_notes_read = self.widget.midi_notes_read + 1
-
-		::skip_filtered_out_note::
 	end
 
+	-- Sort chords
+
 	-- Insert the last set.
-	table.insert(self.chords, current_chord)
+	--table.insert(self.chords, current_chord)
+	--for index, channel in pairs(chord_channels) do
+	--	for _, chord in pairs(channel.chords) do
+	--		for note_index, note in pairs(chord) do
+	--			print(index, note_index, note.pitch)
+	--		end
+	--	end
+	--end
 
 	--[[============================================]]--
 	--[[============================================]]--
@@ -387,90 +466,92 @@ function M2I:ProcessMIDI(midi_take)
 
 	--[[============================================]]--
 	--[[============================================]]--
-
+	--[=[
 	self.n_channels = 0
-	for _, chord in pairs(self.chords) do
-		for _, note in pairs(chord) do
-			-- Go through tracks and find valid position
-			local track_search_index = 1
-			while true do
-				local found_channel_group_track = self.channel_tracks[note.channel]
-				local found_notes_track = nil
+	for _, chords_channel in pairs(self.chords) do
+		for _, chord in pairs(chords_channel.chords) do
+			for _, note in pairs(chord) do
+				-- Go through tracks and find valid position
+				local track_search_index = 1
+				while true do
+					local found_channel_group_track = self.channel_tracks[note.channel]
+					local found_notes_track = nil
 
-				-- Create group track for a channel if doesn't exist already
-				if found_channel_group_track == nil then
-					self.channel_tracks[note.channel] = {
-						channel = note.channel,
-						group_track = nil, 		--new_group_track,
-						tracks = {}
-					}
+					-- Create group track for a channel if doesn't exist already
+					if found_channel_group_track == nil then
+						self.channel_tracks[chords_channel.channel] = {
+							channel = note.channel,
+							group_track = nil, 		--new_group_track,
+							tracks = {}
+						}
 
-					found_channel_group_track = self.channel_tracks[note.channel]
+						found_channel_group_track = self.channel_tracks[note.channel]
 
-					self.n_channels = self.n_channels + 1
-				end
+						self.n_channels = self.n_channels + 1
+					end
 
-				if note.channel ~= 10 then
-					found_notes_track = found_channel_group_track.tracks[track_search_index]
-				else
-					found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
-				end
-
-				-- If next track to check for valid positions
-				-- doesn't exist then we make it
-				if found_notes_track == nil then
 					if note.channel ~= 10 then
-						table.insert(found_channel_group_track.tracks, {
-								parent = found_channel_group_track,
-								track  = nil, --new_items_track,
-								items  = {} -- notes
-							}
-						)
-
 						found_notes_track = found_channel_group_track.tracks[track_search_index]
 					else
-						for i = 1, drums_end_pitch - drums_start_pitch + 1 do
-							found_channel_group_track.tracks[i] = {
-								parent = found_channel_group_track.group_track,
-								track  = nil,	--new_items_track
-								items  = {}		-- notes
-							}
-						end
-
 						found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
 					end
 
-					-- can append note right away
-					table.insert(found_notes_track.items, note)
-					break
-				end
+					-- If next track to check for valid positions
+					-- doesn't exist then we make it
+					if found_notes_track == nil then
+						if note.channel ~= 10 then
+							table.insert(found_channel_group_track.tracks, {
+									parent = found_channel_group_track,
+									track  = nil, --new_items_track,
+									items  = {} -- notes
+								}
+							)
 
-				if note.channel ~= 10 then
-					-- Check if it overlaps with anything
-					-- it better damn not be >:C
-					local isOverlaping = false
-					for _, item in pairs(found_notes_track.items) do
-						local isAtStart = note.start_pos >= item.start_pos
-						local isBeforeEnd = note.start_pos < item.end_pos
-						if isAtStart and isBeforeEnd then
-							isOverlaping = true
-							break
+							found_notes_track = found_channel_group_track.tracks[track_search_index]
+						else
+							for i = 1, drums_end_pitch - drums_start_pitch + 1 do
+								found_channel_group_track.tracks[i] = {
+									parent = found_channel_group_track.group_track,
+									track  = nil,	--new_items_track
+									items  = {}		-- notes
+								}
+							end
+
+							found_notes_track = found_channel_group_track.tracks[note.pitch-drums_start_pitch]
 						end
-					end
 
-					if not isOverlaping then
+						-- can append note right away
 						table.insert(found_notes_track.items, note)
 						break
 					end
 
-					-- else: continue the search for a free spot, if not a drum channel
-					track_search_index = track_search_index + 1
-				else -- if a drum then just insert, drum notes never overlap.
-					table.insert(found_notes_track.items, note)
-					break
+					if note.channel ~= 10 then
+						-- Check if it overlaps with anything
+						-- it better damn not be >:C
+						local isOverlaping = false
+						for _, item in pairs(found_notes_track.items) do
+							local isAtStart = note.start_pos >= item.start_pos
+							local isBeforeEnd = note.start_pos < item.end_pos
+							if isAtStart and isBeforeEnd then
+								isOverlaping = true
+								break
+							end
+						end
+
+						if not isOverlaping then
+							table.insert(found_notes_track.items, note)
+							break
+						end
+
+						-- else: continue the search for a free spot, if not a drum channel
+						track_search_index = track_search_index + 1
+					else -- if a drum then just insert, drum notes never overlap.
+						table.insert(found_notes_track.items, note)
+						break
+					end
 				end
+				self.widget.midi_notes_channel_destribute = self.widget.midi_notes_channel_destribute + 1
 			end
-			self.widget.midi_notes_channel_destribute = self.widget.midi_notes_channel_destribute + 1
 		end
 	end
 
@@ -492,6 +573,7 @@ function M2I:ProcessMIDI(midi_take)
 	table.sort(self.channel_tracks, function(channelA, channelB)
 		return channelA.channel < channelB.channel
 	end)
+	--]=]
 
 	return true
 end
