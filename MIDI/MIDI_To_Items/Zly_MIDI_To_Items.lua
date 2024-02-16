@@ -1,5 +1,87 @@
 -- @noindex
 
+local function MultLineStringConstructor(...)
+	local strings_array = {...}
+	local compiled_string = ""
+	for index, line in pairs(strings_array) do
+		compiled_string =
+			compiled_string
+			..line
+			..(index ~= #strings_array and "\n" or "")
+	end
+	return compiled_string
+end
+
+local DepsChecker = {
+	libs_to_check = {},
+	builded_reapack_deps_list = "",
+	builded_reapack_search_filter = "",
+	-----------------------------------------------------
+	AddDepsToCheck = function(self, _func, _filter)
+		table.insert(self.libs_to_check, {
+			func	= _func,
+			filter	= _filter
+		})
+	end,
+	CheckLibs = function(self)
+		for index, lib in pairs(self.libs_to_check) do
+			if not lib.func then
+				self.builded_reapack_deps_list =
+					self.builded_reapack_deps_list
+					..'\t'..lib.filter
+					..(index ~= #self.libs_to_check and '\n' or "")
+
+				self.builded_reapack_search_filter =
+				self.builded_reapack_search_filter
+						..lib.filter
+						..(index ~= #self.libs_to_check and " OR " or "")
+			end
+		end
+
+		-- if empty then it's all good
+		if self.builded_reapack_search_filter == "" then
+			return true
+		end
+
+		-- I didn't wanted to write in [[str]] for a multiline string cuz it sucks to read in code
+		-- and I didn't wanted to make one long ass single line string with '\n' at random places
+		-- this way i can see the dimensions of the text for a proper formating
+		local error_msg = MultLineStringConstructor(
+				"Please install next Packages through ReaPack",
+				"In Order for the script to work:\n",
+				self.builded_reapack_deps_list,
+				"\nAfter closing this window ReaPack's Package Browser",
+				"will open with the dependencies you need!"
+		)
+
+		reaper.MB(error_msg, "Error", 0)
+
+		if not reaper.ReaPack_BrowsePackages then
+			local reapack_error = MultLineStringConstructor(
+					"Someone told me you don't have ReaPack to get the deps from...",
+					"After closing this window I will open the Official ReaPack website",
+					"for you to download it from :)"
+			)
+			reaper.MB(reapack_error, "What the hell...", 0)
+			return false
+		end
+
+		reaper.ReaPack_BrowsePackages(self.builded_reapack_search_filter)
+
+		return false
+	end,
+
+	CheckIfIsAllInstalled = function(self)
+		return self.is_all_good
+	end
+}
+
+DepsChecker:AddDepsToCheck(reaper.JS_Dialog_BrowseForOpenFiles, "js_ReaScriptAPI")
+DepsChecker:AddDepsToCheck(reaper.ImGui_Begin, "ReaImGui")
+if not DepsChecker:CheckLibs() then
+	return
+end
+
 --[[===================================================]]--
 --[[===================================================]]--
 --[[===================================================]]--
@@ -83,6 +165,24 @@ for name, func in pairs(reaper) do
 	::namespace_cont::
 end
 --local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
+
+--[[===================================================]]--
+
+local function ImGui_HelpMarker(ctx, desc)
+	ImGui.SameLine(ctx)
+	ImGui.TextDisabled(ctx, "(?)")
+
+	if not ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort()) then
+		return
+	end
+
+	if ImGui.BeginTooltip(ctx) then
+		ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+		ImGui.Text(ctx, desc)
+		ImGui.PopTextWrapPos(ctx)
+		ImGui.EndTooltip(ctx)
+	end
+end
 
 --[[===================================================]]--
 
@@ -208,6 +308,9 @@ local M2I = {
 		CHB_skip_empty_channels_click	= false,
 		CHB_skip_empty_channels			= false,
 		-------------------------------------
+		CHB_disable_interactive_click	= false,
+		CHB_disable_interactive			= true,
+		-------------------------------------
 		midi_notes_num					= 0,
 		midi_notes_read					= 0,
 		midi_notes_channel_destribute	= 0,
@@ -220,10 +323,10 @@ local M2I = {
 
 	table_content = {
 		-- Channel
-		function(self, _ctx, index, channel_data)
+		function(self, _ctx, index, channel_track_data)
 			local color = 0x888888FF
-			if channel_data then
-				color = channel_data.is_empty and 0x888888FF or hsl2rgb(120, 1, 0.8)
+			if channel_track_data then
+				color = #channel_track_data.tracks == 0 and 0x888888FF or hsl2rgb(120, 1, 0.8)
 			end
 			ImGui.TextColored(_ctx, color, index)
 		end,
@@ -310,58 +413,6 @@ local M2I = {
 --[[===================================================]]--
 --[[===================================================]]--
 
-_G._print = print
-_G.print = function(...)
-	local string = ""
-	for _, v in pairs({...}) do
-		string = string .. tostring(v) .. "\t"
-	end
-	string = string.."\n"
-	reaper.ShowConsoleMsg(string)
-end
-
-local function printTable(t, show_details)
-	show_details = show_details or false
-	local printTable_cache = {}
-
-	local function sub_printTable(_t, indent, indenty)
-		indenty = indenty or indent
-
-		if printTable_cache[tostring(_t)] then
-			print(indenty .. "*" .. tostring(_t))
-			return
-		end
-
-
-		printTable_cache[tostring(_t)] = true
-		if type(_t) ~= "table" then
-			print(indenty..(show_details and tostring(_t) or ""))
-			return
-		end
-
-
-		for key, val in pairs(_t) do
-			if type(val) == "table" then
-				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
-				sub_printTable(val, indent, indenty..indent)
-				print(indenty .. "}")
-			elseif type(val) == "string" then
-				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
-			else
-				print(indenty .. "[" .. key .. "] => " .. tostring(val))
-			end
-		end
-	end
-
-	if type(t) == "table" then
-		print((show_details and tostring(t)..": " or "").."{")
-		sub_printTable(t, "\t")
-		print("}")
-	else
-		sub_printTable(t, "\t")
-	end
-end
-
 function M2I:ProcessMIDI(midi_take)
 	reaper.ClearConsole()
 
@@ -399,7 +450,6 @@ function M2I:ProcessMIDI(midi_take)
 
 		-- create a set if none exist for the channel
 		-- Or if it's at a drum track, there we don't care about chords.
-		-- TODO: Sort Drum Notes to individual chords for a potential simplicity?
 		if current_chord == nil or current_channel.channel == 10 then
 			-- Drum track
 			if current_channel.channel == 10 then
@@ -458,10 +508,10 @@ function M2I:ProcessMIDI(midi_take)
 
 
 	-- Sort chords and assign base pitch
-	for _, chords_channel in pairs(self.chords_channels) do
+	for channel_index, chords_channel in pairs(self.chords_channels) do
 		if #chords_channel.chords == 0 then goto skip_sort_for_empty end
 
-		if chords_channel.channel == 10 then
+		if channel_index == 10 then
 			chords_channel.base_pitch = -1 -- Means we don't assign pitch
 			goto skip_sort_for_drums
 		end
@@ -507,6 +557,7 @@ function M2I:ProcessMIDI(midi_take)
 					-- Create Channel's Group track if doesn't exist already
 					if found_channel_group_track == nil then
 						self.channel_tracks[channel_index] = {
+							base_pitch = chords_channel.base_pitch,
 							channel = channel_index,
 							group_track = nil, 		--new_group_track,
 							tracks = {}
@@ -553,10 +604,12 @@ function M2I:ProcessMIDI(midi_take)
 						-- Check if it overlaps with anything
 						-- it better damn not be >:C
 						local isOverlaping = false
-						for _, item in pairs(found_notes_track.items) do
-							local isAtStart = note.start_pos >= item.start_pos
-							local isBeforeEnd = note.start_pos < item.end_pos
-							if isAtStart and isBeforeEnd then
+						for _, existing_note in pairs(found_notes_track.items) do
+							local case_1 = note.start_pos >= existing_note.start_pos and note.start_pos < existing_note.end_pos -- If the start of our new note is inside of another note
+							local case_2 = note.end_pos > existing_note.start_pos and note.end_pos <= existing_note.end_pos		-- If the end   of our new note is inside of another note
+							local case_3 = existing_note.start_pos >= note.start_pos and existing_note.end_pos <= note.end_pos	-- If other note is inside our new note
+
+							if case_1 or case_2 or case_3 then
 								isOverlaping = true
 								break
 							end
@@ -579,26 +632,6 @@ function M2I:ProcessMIDI(midi_take)
 		end
 	end
 
-	--[[============================================]]--
-	--[[============================================]]--
-
-	-- Sort table
-	-- TODO: get rid of such logic
-	-- Fill up so the sort can work
-	--for i = 1 , 16 do
-	--	self.channel_tracks[i] =
-	--		self.channel_tracks[i]
-	--		or {
-	--			channel = i,
-	--			is_empty = true
-	--		}
-	--end
-
-	--table.sort(self.channel_tracks, function(channelA, channelB)
-	--	return channelA.channel < channelB.channel
-	--end)
-	--]=]
-
 	return true
 end
 
@@ -616,6 +649,10 @@ function M2I:Generate(midi_take)
 	local midi_track  = reaper.GetMediaItemTakeInfo_Value(midi_take, "P_TRACK")
 	local track_index = reaper.GetMediaTrackInfo_Value(midi_track, "IP_TRACKNUMBER")
 
+	if self.widget.CHB_disable_interactive then
+		reaper.PreventUIRefresh(1)
+	end
+
 	for _, channel_group_track in pairs(self.channel_tracks) do
 		-- Stupid GOTOs that i use as `continue` don't let me do the jumps because of local variable being declared
 		-- inbetween the lable and goto call >:(
@@ -631,7 +668,7 @@ function M2I:Generate(midi_take)
 			end
 		end
 		-- Skip if empty channel
-		if channel_group_track.is_empty then
+		if #channel_group_track.tracks == 0 then
 			goto cntue_tracks
 		end
 
@@ -704,28 +741,28 @@ function M2I:Generate(midi_take)
 	-- Make folders
 	local color_step = 360.0/self.n_channels
 	local channel_index = 0
-	for _, channel_group_data in pairs(self.channel_tracks) do
+	for _, channel_track_data in pairs(self.channel_tracks) do
 		local color
 
 		-- If skipping sampless channels
 		if self.widget.CHB_skip_empty_channels then
-			if self.sources[channel_group_data.channel] == nil or self.sources[channel_group_data.channel] == "" then
+			if self.sources[channel_track_data.channel] == nil or self.sources[channel_track_data.channel] == "" then
 				goto cntn_folders
 			end
 		end
-		if channel_group_data.is_empty then
+		if #channel_track_data.tracks == 0 then
 			goto cntn_folders
 		end
 
 		-- mark group track as a group
-		reaper.SetMediaTrackInfo_Value(channel_group_data.group_track, "I_FOLDERDEPTH", 1)
+		reaper.SetMediaTrackInfo_Value(channel_track_data.group_track, "I_FOLDERDEPTH", 1)
 
 		local found_last_track_in_group = nil
-		if channel_group_data.channel ~= 10 then
-			found_last_track_in_group = channel_group_data.tracks[1].track
+		if channel_track_data.channel ~= 10 then
+			found_last_track_in_group = channel_track_data.tracks[1].track
 		else
-			for i = drums_end_pitch-drums_start_pitch+1, 1, -1 do
-				local found_drum = channel_group_data.tracks[i]
+			for i = drums_end_pitch-drums_start_pitch + 1, 1, -1 do
+				local found_drum = channel_track_data.tracks[i]
 				if found_drum.track ~= nil then
 					found_last_track_in_group = found_drum.track
 					break
@@ -738,8 +775,8 @@ function M2I:Generate(midi_take)
 
 		-- Coloring
 		color = hsl2rgb(color_step * (channel_index), 1, 0.8, true)
-		reaper.SetTrackColor(channel_group_data.group_track, color)
-		for _, notes_track in pairs(channel_group_data.tracks) do
+		reaper.SetTrackColor(channel_track_data.group_track, color)
+		for _, notes_track in pairs(channel_track_data.tracks) do
 			if notes_track.track then
 				reaper.SetTrackColor(notes_track.track, color)
 			end
@@ -751,24 +788,9 @@ function M2I:Generate(midi_take)
 	--[[============================================]]--
 	--[[============================================]]--
 
-	-- Detect the lowest pitch in the first potential chord
-	local first_base_pitch = 127
-	if #self.chords_channels[1] > 1 then
-		for _, note in pairs(self.chords_channels[1]) do
-			if note.pitch < first_base_pitch then
-				first_base_pitch = note.pitch
-			end
-		end
-	else
-		first_base_pitch = self.chords_channels[1][1].pitch
-	end
-
-	--[[============================================]]--
-	--[[============================================]]--
-
 	-- Create the items
 	for _, channel_group_track in pairs(self.channel_tracks) do
-		if channel_group_track.is_empty then
+		if #channel_group_track.tracks == 0 then
 			goto cnte_create_items
 		end
 		if self.widget.CHB_skip_empty_channels then
@@ -791,8 +813,10 @@ function M2I:Generate(midi_take)
 				new_item_take = reaper.AddTakeToMediaItem(new_item)
 
 				--Applying params
-				reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
-				reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", note.pitch - first_base_pitch)
+				if channel_group_track.base_pitch ~= -1 then
+					reaper.SetMediaItemTakeInfo_Value(new_item_take, "B_PPITCH", 1)
+					reaper.SetMediaItemTakeInfo_Value(new_item_take, "D_PITCH", note.pitch - channel_group_track.base_pitch)
+				end
 				if self.widget.CHB_inherit_vol then
 					reaper.SetMediaItemInfo_Value(new_item, "D_VOL", note.vel/127.0)
 				end
@@ -997,6 +1021,8 @@ function M2I:UI(ctx)
 		self.widget.CHB_blank_items_click, self.widget.CHB_blank_items = ImGui.Checkbox(ctx, "Blank Items", self.widget.CHB_blank_items)
 		ImGui.SameLine(ctx)
 		self.widget.CHB_skip_empty_channels_click, self.widget.CHB_skip_empty_channels = ImGui.Checkbox(ctx, "Skip Sampless channels", self.widget.CHB_skip_empty_channels)
+		self.widget.CHB_disable_interactive_click, self.widget.CHB_disable_interactive = ImGui.Checkbox(ctx, "Disable Interactive Generation", self.widget.CHB_disable_interactive)
+		ImGui_HelpMarker(ctx, "Disabling Interactive Generation improves generation speed,\ne.g. less work for the DAW to do in order to just create the Items and Tracks.")
 	else
 		if self.is_midi_loaded then
 			self.is_midi_loaded = false
