@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="9ab22247b87c72fbca3c752f350504b0e23ff0c8">
+<index version="1" name="NAGASHIZAR" commit="9b49050e3fbd1b1aa0e492c337c8a74e42b6b6f1">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -51,13 +51,13 @@
         <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
       </version>
     </reapack>
-    <reapack name="meta_MIDI_To_Items.lua" type="script" desc="MIDI -&gt; Items">
+    <reapack name="meta_MIDI_To_Items.lua" type="script" desc="MIDI To Items Converter">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Items Based On MIDI\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 MIDI To Items Converter\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Media Items based on selected MIDI.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each of the item's pitch is relative to the first note in the MIDI.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates Channels in their own Folder Tracks for ease of work.\par}
@@ -109,6 +109,12 @@
 - Tweaked style a bit.
 - Added hint about not entirely loaded MIDI.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/8e6d4696e8c3ce2e9ea4c93077ac15bcb0d933bf/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.4" author="Zly" time="2024-02-16T22:52:25Z">
+        <changelog><![CDATA[- Improved algorithm so it's much more faster.
+- Added option for Disabling Interactive Generation (improves performance)
+- Implemented Deps checker.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/fc9ed07dc73523aff50d5bcf50e46a382bf8da83/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
