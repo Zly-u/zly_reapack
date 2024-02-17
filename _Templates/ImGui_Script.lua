@@ -2,9 +2,19 @@
 
 -- @noindex
 
+-- Allows to require scripts relatively to this current script's path.
+local function get_script_path()
+	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
+	return filename:match("^(.*)[\\/](.-)$")
+end
+local function add_to_package_path(subpath)
+	package.path = subpath .. "/?.lua;" .. package.path
+end
+add_to_package_path(get_script_path())
+
 --[[===================================================]]--
 --[[============== TEMP CODE FOR DEBUG ================]]--
---[[===================================================]]--
+--[[vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv]]--
 
 _G._print = print
 _G.print = function(...)
@@ -55,6 +65,24 @@ local function printTable(t, show_details)
 	else
 		sub_printTable(t, "\t")
 	end
+end
+
+--[[===================================================]]--
+
+do
+	local demo = require("ImGui_demo")
+	local demo_ctx = reaper.ImGui_CreateContext("Demo")
+	local function loop()
+		demo.PushStyle(demo_ctx)
+		demo.ShowDemoWindow(demo_ctx)
+		if reaper.ImGui_Begin(demo_ctx, "Dear ImGui Style Editor") then
+			demo.ShowStyleEditor(demo_ctx)
+			reaper.ImGui_End(demo_ctx)
+		end
+		demo.PopStyle(demo_ctx)
+		reaper.defer(loop)
+	end
+	reaper.defer(loop)
 end
 
 --[[===================================================]]--
