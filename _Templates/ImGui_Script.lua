@@ -2,15 +2,10 @@
 
 -- @noindex
 
--- Allows to require scripts relatively to this current script's path.
-local function get_script_path()
+do	-- Allows to require scripts relatively to this current script's path.
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
-	return filename:match("^(.*)[\\/](.-)$")
+	package.path = filename:match("^(.*)[\\/](.-)$") .. "/?.lua;" .. package.path
 end
-local function add_to_package_path(subpath)
-	package.path = subpath .. "/?.lua;" .. package.path
-end
-add_to_package_path(get_script_path())
 
 --[[===================================================]]--
 --[[============== TEMP CODE FOR DEBUG ================]]--
