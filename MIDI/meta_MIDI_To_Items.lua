@@ -2,7 +2,7 @@
 @metapackage
 @description MIDI To Items Converter
 @author Zly
-@version 2.4.1
+@version 2.4.2
 @provides
 	[main] .\MIDI_To_Items\Zly_MIDI_To_Items.lua
 @about
@@ -24,5 +24,5 @@
 @donation
 	Donate https://boosty.to/zly
 @changelog
-	- Forgot to add the redirection to the ReaPack's Website if the user doesn't have one lol.
+	- Made the MIDI error message more obvious.
 --]]

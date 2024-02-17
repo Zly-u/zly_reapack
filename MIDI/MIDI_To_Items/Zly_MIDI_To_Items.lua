@@ -456,7 +456,7 @@ function M2I:ProcessMIDI(midi_take)
 		local current_chords_list
 		local current_chord
 
-		if current_note == nil then goto skip end
+		if current_note == nil then goto skip_filtered_note end
 
 		current_channel		= self.chords_channels[current_note.channel]
 		current_chords_list	= current_channel.chords
@@ -519,8 +519,8 @@ function M2I:ProcessMIDI(midi_take)
 
 		::skip::
 		self.widget.midi_notes_read = self.widget.midi_notes_read + 1
+		::skip_filtered_note::
 	end
-
 
 	-- Sort chords and assign base pitch
 	for channel_index, chords_channel in pairs(self.chords_channels) do
@@ -557,7 +557,7 @@ function M2I:ProcessMIDI(midi_take)
 
 	--[[============================================]]--
 	--[[============================================]]--
-	---[=[
+
 	-- Search for a free spot in tracks for each Note Item
 	self.n_channels = 0
 	for channel_index, chords_channel in pairs(self.chords_channels) do -- [1, 16]
@@ -646,7 +646,6 @@ function M2I:ProcessMIDI(midi_take)
 			end
 		end
 	end
-
 	return true
 end
 
@@ -871,7 +870,12 @@ function M2I:LoadSelectedMIDI()
 
 	local item_count = reaper.CountSelectedMediaItems()
 	if item_count == 0 then
-		reaper.MB("No MIDI was selected", "Error", 0)
+		reaper.MB("No MIDI Item was selected on the timeline!", "Error", 0)
+		return nil
+	end
+
+	if item_count > 1 then
+		reaper.MB("Select only one Item!", "Error", 0)
 		return nil
 	end
 
@@ -879,7 +883,7 @@ function M2I:LoadSelectedMIDI()
 	local midi_take = reaper.GetActiveTake(midi_item)
 
 	if not reaper.TakeIsMIDI(midi_take) then
-		reaper.MB("The selected Item is not a MIDI", "Error", 0)
+		reaper.MB("The selected Item is not a MIDI Item.", "Error", 0)
 		return nil
 	end
 
