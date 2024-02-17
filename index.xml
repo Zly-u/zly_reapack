@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="e06cac371a712456f45905f2bd8cb006e0bb3a2b">
+<index version="1" name="NAGASHIZAR" commit="93be0e1049fcb28856af09761208f34a1c19cecf">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -119,6 +119,10 @@
       <version name="2.4.1" author="Zly" time="2024-02-16T23:14:24Z">
         <changelog><![CDATA[- Forgot to add the redirection to the ReaPack's Website if the user doesn't have one lol.]]></changelog>
         <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/e06cac371a712456f45905f2bd8cb006e0bb3a2b/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.4.2" author="Zly" time="2024-02-17T00:02:49Z">
+        <changelog><![CDATA[- Made the MIDI error message more obvious.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/4975d455166dd7a14d0046fb3c666b6680f9e431/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
