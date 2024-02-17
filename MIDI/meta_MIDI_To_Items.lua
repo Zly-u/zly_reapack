@@ -2,7 +2,7 @@
 @metapackage
 @description MIDI To Items Converter
 @author Zly
-@version 2.4.2-a
+@version 2.4.2.1
 @provides
 	[main] .\MIDI_To_Items\Zly_MIDI_To_Items.lua
 @about
