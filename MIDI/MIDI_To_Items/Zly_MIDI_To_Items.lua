@@ -275,7 +275,7 @@ local ch10_drum_names = {
 --[[===================================================]]--
 
 local M2I = {
-	version = "2.4.2",
+	version = "2.4.3",
 
 	sources = {},
 	chords_channels = {},
@@ -405,7 +405,13 @@ local M2I = {
 			ImGui.PushID(_ctx, index)
 			--if ImGui.Button(_ctx, "Set") then
 			if ImGui.SmallButton(_ctx, "Set") then
-				local retval, fileNames = JS.Dialog_BrowseForOpenFiles("Source to use for Media Items", os.getenv("HOMEPATH") or "", "", formats_string, false)
+				local retval, fileNames = JS.Dialog_BrowseForOpenFiles(
+						"Source to use for Media Items",
+						os.getenv("HOMEPATH") or "",
+						"",
+						self.formats_string,
+						false
+				)
 				if retval and fileNames ~= "" then
 					self.sources[index] = fileNames
 				end
@@ -989,8 +995,10 @@ function M2I:UI(ctx)
 		if ImGui.SmallButton(ctx, "Set") then
 			local retval, fileNames = JS.Dialog_BrowseForOpenFiles(
 					"Source to use for all Channels",
-					os.getenv("HOMEPATH") or "", "",
-					self.formats_string, false
+					os.getenv("HOMEPATH") or "",
+					"",
+					self.formats_string,
+					false
 			)
 			if retval and fileNames ~= "" then
 				for i = 1, 16 do
