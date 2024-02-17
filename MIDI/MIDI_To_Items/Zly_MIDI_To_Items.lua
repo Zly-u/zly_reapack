@@ -275,7 +275,7 @@ local ch10_drum_names = {
 --[[===================================================]]--
 
 local M2I = {
-	version = "2.3.2",
+	version = "2.4.2",
 
 	sources = {},
 	chords_channels = {},
