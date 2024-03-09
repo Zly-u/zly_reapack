@@ -1,7 +1,5 @@
 # Zly's ReaPack Repository
 
-* Main maintainer: [Zly](https://github.com/Zly-u)
-
 # About
 A repo of scripts that I have made for simplifying and automating my personal Music/YTPMV work processes.
 
