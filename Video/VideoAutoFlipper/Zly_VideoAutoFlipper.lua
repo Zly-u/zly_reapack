@@ -320,6 +320,31 @@ local function ImGui_Indenter(ctx, amount, func)
 	end
 end
 
+local function ImGui_ButtonWithHint(ctx, button_text, alignment, desc)
+	desc = desc or ""
+
+	alignment = alignment or 0.5
+
+	local window_width = ImGui.CalcItemWidth(ctx)
+	local text_width   = ImGui.CalcTextSize(ctx, button_text)
+
+	ImGui.SetCursorPosX(ctx, window_width * alignment - text_width / 2.0)
+	local rv = ImGui.Button(ctx, button_text)
+
+	if desc == "" or not ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort()) then
+		return rv
+	end
+
+	if ImGui.BeginTooltip(ctx) then
+		ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+		ImGui.Text(ctx, desc)
+		ImGui.PopTextWrapPos(ctx)
+		ImGui.EndTooltip(ctx)
+	end
+
+	return rv
+end
+
 --[[===================================================]]--
 --[[===================================================]]--
 --[[===================================================]]--
@@ -391,46 +416,127 @@ local VAF = {
 		end
 	end,
 
+	AddVFX = function(self, track, name, presset_name, force_add)
+		local fx = reaper.TrackFX_GetByName(track, name, false)
+		if fx == -1 or force_add then
+			fx = reaper.TrackFX_AddByName(track, "Video processor", 0, 1)
+			reaper.TrackFX_SetNamedConfigParm(track, fx, "renamed_name", name)
+			reaper.TrackFX_SetNamedConfigParm(track, fx, "VIDEO_CODE", self.VP_Presets[presset_name])
+		end
+		return fx
+	end,
+
 	--[[
 	params = {
 		volumet_to_opcaity = false
 	}
 	--]]
 	ApplyPresset = function(self, preset_index, params)
-		local found_preset = self.presets[self.preset_names[preset_index]]
+		reaper.Undo_BeginBlock()
+		reaper.PreventUIRefresh(1)
 
 		local items_count = reaper.CountSelectedMediaItems(0)
+		if items_count == 0 then
+			return
+		end
 
-		-- Add pressets
+		local item_track = reaper.GetMediaItemTrack(reaper.GetSelectedMediaItem(0, 0))
 
-		-- Prepare envelopes
+		local found_preset = self.presets[self.preset_names[preset_index]]
+
+		local env_horiz_flip	= nil
+		local env_vert_flip		= nil
+		local env_opacity		= nil
+
+		local flips_check = found_preset(0, 0)
+
+		-- TODO: Prepare envelopes
+
+		-- TODO:Add pressets
+
+		-- Add Flipper
+
+		if params.add_flips then
+			local fx_flip = self:AddVFX(item_track, "VAF: Flipper", "Flipper.eel")
+			env_horiz_flip = flips_check.h ~= nil and reaper.GetFXEnvelope(item_track, fx_flip, 0, true) or nil
+			env_vert_flip  = flips_check.v ~= nil and reaper.GetFXEnvelope(item_track, fx_flip, 1, true) or nil
+		end
+
+		-- Add Opacity
+		if params.volume_to_opacity then
+			local fx_opacity = self:AddVFX(item_track, "VAF: Opacity", "Opacity.eel")
+			env_opacity = reaper.GetFXEnvelope(item_track, fx_opacity, 0, true)
+		end
+
+
+		-- Finilizing with Chroma-key
+		local _ = self:AddVFX(item_track, "VAF: Chroma-key", "Chroma.eel")
+		--------------------------------------------------------------------------------
+		--------------------------------------------------------------------------------
+		--------------------------------------------------------------------------------
 
 		-- Process flippings
 		for index = 0, items_count - 1 do
-			local item		 = reaper.GetSelectedMediaItem(0, index)
-			local item_track = reaper.GetMediaItemTrack(item)
+			local item		= reaper.GetSelectedMediaItem(0, index)
+			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+			--local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
 
-			-- Flipper
-			--for i = 0, reaper.TrackFX_GetCount(item_track) - 1 do
-			--
-			--end
-			local new_fx = reaper.TrackFX_GetByName(item_track, "VAF: Flipper", false)
+			local evaluated_flips = found_preset(index, item)
 
-			if new_fx == -1 then
-				new_fx = reaper.TrackFX_AddByName(item_track, "Video processor", -1, 1)
-				reaper.TrackFX_SetNamedConfigParm(item_track, new_fx, "renamed_name", "VAF: Flipper")
-				reaper.TrackFX_SetNamedConfigParm(item_track, new_fx, "VIDEO_CODE", self.VP_Presets["Flipper.eel"])
+			-- TODO: Figure out inseritng points into pooled automation items.
+			--local ai_i = reaper.InsertAutomationItem(
+			--	env_horiz_flip,
+			--	math.max(evaluated_flips.h, 0)+1,
+			--	---1,
+			--	item_pos, item_len
+			--)
+
+			if env_horiz_flip then
+				reaper.InsertEnvelopePointEx(
+					-- env
+					env_horiz_flip,
+					-- autoitem_idx
+					-1,
+					-- pos, val
+					item_pos, math.max(evaluated_flips.h, 0),
+					-- shape, tension
+					1, 1,
+					-- isSelected, noSort
+					false, true
+				)
 			end
 
-			--local flips = found_preset(index, item)
-
+			if env_vert_flip then
+				reaper.InsertEnvelopePointEx(
+					-- env
+					env_vert_flip,
+					-- autoitem_idx
+					-1,
+					-- pos, val
+					item_pos, math.max(evaluated_flips.v, 0),
+					-- shape, tension
+					1, 1,
+					-- isSelected, noSort
+					false, true
+				)
+			end
 
 			-- Volume -> Opacity
-			if params.volumet_to_opcaity then
-				-- TODO
+			if env_opacity then
+				reaper.InsertEnvelopePointEx(
+					env_opacity,
+					-1,
+					item_pos, reaper.GetMediaItemInfo_Value(item, "D_VOL"),
+					1, 1,
+					false, true
+				)
 			end
 		end
 
+		reaper.Envelope_SortPoints(env_horiz_flip)
+
+		reaper.Undo_EndBlock("[VAF] Apply Presset", 0)
+		reaper.UpdateArrange()
 	end
 }
 
@@ -458,11 +564,25 @@ local GUI = {
 		selected_preset		  = 0,
 		selected_preset_click = 0,
 		presets_string = "",
+
 		--------------------------------------------
 		--------------------------------------------
-		CHB_volume_to_opacity = false,
+
+		CHB_add_aspect_fixer		= true,
+		CHB_add_aspect_fixer_click	= true,
+		--------------------------------------------
+		CHB_add_cropper			= true,
+		CHB_add_cropper_click	= true,
+		--------------------------------------------
+		CHB_add_flips		= true,
+		CHB_add_flips_click = false,
+		--------------------------------------------
+		CHB_volume_to_opacity		= false,
 		CHB_volume_to_opacity_click = false,
+
 		--------------------------------------------
+		--------------------------------------------
+
 		CHB_flip_only_on_pitch_change		= false,
 		CHB_flip_only_on_pitch_change_click = false,
 	},
@@ -503,6 +623,8 @@ local GUI = {
 	-- Most likely won't change ever.
 	LoopUI = function(self)
 		self:StyleVar_Processor()
+
+		ImGui.SetNextWindowSize(self.ctx, 290, 371, ImGui.Cond_Always())
 
 		local window_visible, window_open = select(1, ImGui.Begin(self.ctx, self.name.." "..self.version, true, self.window_flags))
 
@@ -554,17 +676,17 @@ function GUI:Init()
 
 	VAF:AddPreset("Horizontal Flips", function(index, item)
 		return {
-			v = 1,
+			v = nil,
 			h = index % 2 == 0 and -1 or 1,
-			r = 0,
+			r = nil,
 		}
 	end)
 
 	VAF:AddPreset("Vertical Flips", function(index, item)
 		return {
 			v = index % 2 == 0 and -1 or 1,
-			h = 1,
-			r = 0,
+			h = nil,
+			r = nil,
 		}
 	end)
 
@@ -572,7 +694,7 @@ function GUI:Init()
 		return {
 			v = math.floor((index+1)/2) % 2 == 0 and -1 or 1,
 			h = math.floor((index)/2) % 2 == 0 and -1 or 1,
-			r = 0,
+			r = nil,
 		}
 	end)
 
@@ -580,7 +702,7 @@ function GUI:Init()
 		return {
 			v = math.floor((index)/2) % 2 == 0 and -1 or 1,
 			h = math.floor((index+1)/2) % 2 == 0 and -1 or 1,
-			r = 0,
+			r = nil,
 		}
 	end)
 
@@ -594,6 +716,8 @@ function GUI:Init()
 		"Pre-Compose.eel",
 		"Rotate.eel",
 		"Scale.eel",
+		"Chroma.eel",
+		"SolidColorFill.eel",
 	}
 
 	for _, preset_name in pairs(preset_names) do
@@ -630,7 +754,183 @@ function GUI:UpdateParams()
 end
 
 
+function GUI:TAB_Flipper()
+	ImGui_AlignedText(self.ctx, "Select Video Items you want to flip", 0.5)
 
+	--------------------------------------------------------------------------------------------------------------------
+	ImGui.SeparatorText(self.ctx, "PRESETS")
+	--------------------------------------------------------------------------------------------------------------------
+	-- Presets --
+
+	ImGui.PushItemWidth(self.ctx, 150)
+	self.UI_Data.selected_preset_click, self.UI_Data.selected_preset =
+	ImGui.ListBox(self.ctx, "->", self.UI_Data.selected_preset, self.UI_Data.presets_string, 5)
+
+	ImGui.SameLine(self.ctx)
+
+	do
+		local flips = VAF:PreviewPresset(self.UI_Data.selected_preset + 1, self.UI_Data.preview_index)
+		local uv_min_x = 1.0 -  math.max(flips.h or 1, 0.0)
+		local uv_min_y = 1.0 -  math.max(flips.v or 1, 0.0)
+		local uv_max_x = 		math.max(flips.h or 1, 0.0)
+		local uv_max_y = 		math.max(flips.v or 1, 0.0)
+
+		local image_size = 94
+		local border_col = ImGui.GetStyleColor(self.ctx, ImGui.Col_Border())
+		ImGui.Image(
+				self.ctx,
+				self.UI_Data.image_binaries[self.UI_Data.selected_image],
+				image_size, image_size-1, -- pixel perfect to the list
+				uv_min_x, uv_min_y,
+				uv_max_x, uv_max_y,
+				0xFFFFFFFF,
+				border_col
+		)
+	end
+
+	self.UI_Data.CHB_add_aspect_fixer_click, self.UI_Data.CHB_add_aspect_fixer =
+	ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer.", self.UI_Data.CHB_add_aspect_fixer)
+
+	self.UI_Data.CHB_add_flips_click, self.UI_Data.CHB_add_flips =
+	ImGui.Checkbox(self.ctx, "Add Flips.", self.UI_Data.CHB_add_flips)
+
+	self.UI_Data.CHB_volume_to_opacity_click, self.UI_Data.CHB_volume_to_opacity =
+	ImGui.Checkbox(self.ctx, "Volume -> Opacity", self.UI_Data.CHB_volume_to_opacity)
+
+	--------------------------------------------------------------------------------------------------------------------
+	ImGui.SeparatorText(self.ctx, "SETTINGS")
+	--------------------------------------------------------------------------------------------------------------------
+	-- Settings --
+
+	self.UI_Data.CHB_flip_only_on_pitch_change_click, self.UI_Data.CHB_flip_only_on_pitch_change =
+	ImGui.Checkbox(self.ctx, "Flip only on Pitch change.", self.UI_Data.CHB_flip_only_on_pitch_change)
+
+	--------------------------------------------------------------------------------------------------------------------
+	ImGui.SeparatorText(self.ctx, "")
+	--------------------------------------------------------------------------------------------------------------------
+	-- Buttons --
+
+	if ImGui.Button(self.ctx, "Apply") then
+		local params = {
+			volume_to_opacity	= self.UI_Data.CHB_volume_to_opacity,
+			add_flips			= self.UI_Data.CHB_add_flips
+		}
+		VAF:ApplyPresset(self.UI_Data.selected_preset + 1, params)
+	end
+
+	ImGui.SameLine(self.ctx)
+
+	do -- Progress bar
+		ImGui.PushStyleColor(self.ctx, ImGui.Col_PlotHistogram(), 0xE67A00FF)
+		ImGui.PushStyleVar(self.ctx, ImGui.StyleVar_FrameBorderSize(), 1)
+
+		ImGui.PushItemWidth(self.ctx, -FLT_MIN)
+		ImGui.ProgressBar(self.ctx, 0.0, 0, 0, ("%.1f/%d"))
+
+		ImGui.PopStyleVar(self.ctx)
+		ImGui.PopStyleColor(self.ctx)
+	end
+end
+
+
+local function Add_fx(name, presset_name, force_add)
+	force_add = force_add or false
+	for i = 0, reaper.CountSelectedTracks(0) do
+		VAF:AddVFX(
+			reaper.GetSelectedTrack(0, i),
+			name, presset_name,
+			force_add
+		)
+	end
+end
+
+function GUI:TAB_VFX()
+	ImGui_AlignedText(self.ctx, "Select tracks you want to apply any FX to.", 0.5)
+	ImGui_AlignedText(self.ctx, "Hover over each button to\nget desciption for them.", 0.5)
+	if ImGui.BeginChild(self.ctx, "VFX", 0, 0, true, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "TRANSFORM")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Position Offset", 0.5,
+			"Sets the Video's position in percentage."
+		) then
+			Add_fx("VAF: Position Offset", "PositionOffset.eel", true)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Rotate", 0.5) then
+			Add_fx("VAF: Rotate", "Rotate.eel", true)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Scale", 0.5) then
+			Add_fx("VAF: Scale", "Scale.eel", true)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Opacity", 0.5) then
+			Add_fx("VAF: Opacity", "Opacity.eel", true)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Flipper", 0.5,
+			"Mainly used for fliping the videos,\nregular scaling doesn't let you do that."
+		) then
+			Add_fx("VAF: Flipper", "Flipper.eel", true)
+		end
+
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "HELPERS")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Aspectratio Fixer", 0.5,
+			"Fixes aspectratio of the videos that don't match the size of the composition."
+		) then
+			Add_fx("VAF: Aspectratio Fixer", "AspectratioFixer.eel", true)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Pre-Compose", 0.5,
+			"Bakes the current rendered frame as if it was After Effect's Pre-Compose kind of thing."
+		) then
+			Add_fx("VAF: Pre-Compose", "Pre-Compose.eel", true)
+		end
+
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "CROPING")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Box Crop", 0.5) then
+			Add_fx("VAF: Box Crop", "BoxCrop.eel", true)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Cropper", 0.5) then
+			Add_fx("VAF: Cropper", "Cropper.eel", true)
+		end
+
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "MISC")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Solid Color Fill", 0.5) then
+			Add_fx("VAF: Solid Color Fill", "SolidColorFill.eel", true)
+		end
+
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "FINALIZERS")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Chroma-key", 0.5,
+			MultLineStringConstructor(
+				"A very inmportant effect that needs to be placed at the end of the chain of those effects that are listed above.",
+				"",
+				"It's done in such way due to Reaper's limitations/absurtd control over the video elements in the rendering, so this is a workaround for compositing alike methods of working with videos."
+			)
+		) then
+			Add_fx("VAF: Chroma-key", "Chroma.eel", true)
+		end
+
+		--------------------------------------------------------------------------------------------------------------------
+
+		ImGui.EndChild(self.ctx)
+	end
+end
 
 function GUI:DrawUI()
 	local _
@@ -666,78 +966,16 @@ function GUI:DrawUI()
 		end
 	)
 
-	--------------------------------------------------------------------------------------------------------------------
-	ImGui.SeparatorText(self.ctx, "")
-	--------------------------------------------------------------------------------------------------------------------
-
-	ImGui_AlignedText(self.ctx, "Select Video Items you want to flip", 0.5)
-
-	--------------------------------------------------------------------------------------------------------------------
-	ImGui.SeparatorText(self.ctx, "PRESETS")
-	--------------------------------------------------------------------------------------------------------------------
-	-- Presets --
-
-	ImGui.PushItemWidth(self.ctx, 150)
-	self.UI_Data.selected_preset_click, self.UI_Data.selected_preset =
-		ImGui.ListBox(self.ctx, "->", self.UI_Data.selected_preset, self.UI_Data.presets_string, 5)
-
-	ImGui.SameLine(self.ctx)
-
-	do
-		local flips = VAF:PreviewPresset(self.UI_Data.selected_preset + 1, self.UI_Data.preview_index)
-		local uv_min_x = 1.0 - math.max(flips.h, 0.0)
-		local uv_min_y = 1.0 - math.max(flips.v, 0.0)
-		local uv_max_x = math.max(flips.h, 0.0)
-		local uv_max_y = math.max(flips.v, 0.0)
-
-		local image_size = 94
-
-		local border_col = ImGui.GetStyleColor(self.ctx, ImGui.Col_Border())
-		ImGui.Image(
-			self.ctx,
-			self.UI_Data.image_binaries[self.UI_Data.selected_image],
-			image_size, image_size-1, -- pixel perfect to the list
-			uv_min_x, uv_min_y,
-			uv_max_x, uv_max_y,
-			0xFFFFFFFF,
-			border_col
-		)
-	end
-
-	--------------------------------------------------------------------------------------------------------------------
-	ImGui.SeparatorText(self.ctx, "SETTINGS")
-	--------------------------------------------------------------------------------------------------------------------
-	-- Settings --
-
-	self.UI_Data.CHB_volume_to_opacity_click, self.UI_Data.CHB_volume_to_opacity =
-		ImGui.Checkbox(self.ctx, "Volume -> Opacity", self.UI_Data.CHB_volume_to_opacity)
-
-	self.UI_Data.CHB_flip_only_on_pitch_change_click, self.UI_Data.CHB_flip_only_on_pitch_change =
-		ImGui.Checkbox(self.ctx, "Flip only on Pitch change.", self.UI_Data.CHB_flip_only_on_pitch_change)
-
-	--------------------------------------------------------------------------------------------------------------------
-	ImGui.SeparatorText(self.ctx, "")
-	--------------------------------------------------------------------------------------------------------------------
-	-- Buttons --
-
-	if ImGui.Button(self.ctx, "Apply") then
-		local params = {
-			volume_to_opcaity = self.UI_Data.CHB_volume_to_opacity
-		}
-		VAF:ApplyPresset(self.UI_Data.selected_preset + 1, params)
-	end
-
-	ImGui.SameLine(self.ctx)
-
-	do -- Progress bar
-		ImGui.PushStyleColor(self.ctx, ImGui.Col_PlotHistogram(), 0xE67A00FF)
-		ImGui.PushStyleVar(self.ctx, ImGui.StyleVar_FrameBorderSize(), 1)
-
-		ImGui.PushItemWidth(self.ctx, -FLT_MIN)
-		ImGui.ProgressBar(self.ctx, 0.0, 0, 0, ("%.1f/%d"))
-
-		ImGui.PopStyleVar(self.ctx)
-		ImGui.PopStyleColor(self.ctx)
+	if ImGui.BeginTabBar(self.ctx, '##tabs', ImGui.TabBarFlags_None()) then
+		if ImGui.BeginTabItem(self.ctx, "Flipper") then
+			self:TAB_Flipper()
+			ImGui.EndTabItem(self.ctx)
+		end
+		if ImGui.BeginTabItem(self.ctx, "VFX") then
+			self:TAB_VFX()
+			ImGui.EndTabItem(self.ctx)
+		end
+		ImGui.EndTabBar(self.ctx)
 	end
 end
 
