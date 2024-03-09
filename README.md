@@ -1,7 +1,6 @@
 # NAGASHIZAR's ReaPack Repository
 
 * Main maintainer: [Zly](https://github.com/Zly-u)
-* NAGASHIZAR's [YouTube](https://www.youtube.com/@NAGASHIZARr)
 
 # About
 A repo of scripts that the members of NAGASHIZAR have made for simplifying and automating their Music/YTPMV workflow.
@@ -10,7 +9,7 @@ Each script's folder should contain a ReadMe describing what each script does.
 
 
 # Adding the Repo into [ReaPack](https://reapack.com/):
-1. Add `https://github.com/Zly-u/NAGASHIZAR_reapack/raw/master/index.xml` through: `Extensions` -> `ReaPack` -> `Import Repositories`
+1. Add `https://github.com/Zly-u/zly_reapack/raw/master/index.xml` through: `Extensions` -> `ReaPack` -> `Import Repositories`
 2. And, just in case: `Extensions` -> `ReaPack` -> `Synchronize Packages`
 
 
