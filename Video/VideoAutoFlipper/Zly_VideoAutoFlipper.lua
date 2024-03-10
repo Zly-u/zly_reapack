@@ -88,6 +88,25 @@ do
 	reaper.defer(loop)
 end
 
+local function GetFilesInDir(sub_path)
+	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
+	local script_path = filename:match("^(.*)[\\/](.-)$")
+
+	local dirs = {}
+
+	local file_index = 0
+	while true do
+		local file = reaper.EnumerateFiles(script_path.."\\"..sub_path, file_index)
+		if file == nil then
+			break
+		end
+		dirs[file] = script_path.."\\"..sub_path.."\\"..file
+		file_index = file_index + 1
+	end
+
+	return dirs
+end
+
 --[[===================================================]]--
 --[[=================== HELPERS =======================]]--
 --[[===================================================]]--
@@ -106,7 +125,8 @@ local function URL_Openner(URL)
 	os.execute(OS .. " " .. URL)
 end
 
-local function MultLineStringConstructor(...)
+local function MultLineStringConstructor(max_len, ...)
+
 	local strings_array = {...}
 	local compiled_string = ""
 	for index, line in pairs(strings_array) do
@@ -152,7 +172,7 @@ local DepsChecker = {
 		-- I didn't wanted to write in [[str]] for a multiline string cuz it sucks to read in code
 		-- and I didn't wanted to make one long ass single line string with '\n' at random places
 		-- this way i can see the dimensions of the text for a proper formating
-		local error_msg = MultLineStringConstructor(
+		local error_msg = MultLineStringConstructor(nil,
 				"Please install next Packages through ReaPack",
 				"In Order for the script to work:\n",
 				self.builded_reapack_deps_list,
@@ -331,7 +351,6 @@ local function ImGui_ButtonWithHint(ctx, button_text, alignment, desc)
 
 	alignment = alignment or 0.5
 
-
 	local pad_x, pad_y		= ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding())
 	local avail_x, avail_y	= ImGui.GetContentRegionAvail(ctx)
 	local text_width		= ImGui.CalcTextSize(ctx, button_text)
@@ -449,11 +468,11 @@ local VAF = {
 	}
 	--]]
 	ApplyPresset = function(self, preset_index, params)
-		reaper.Undo_BeginBlock()
 		reaper.PreventUIRefresh(1)
 
 		local items_count = reaper.CountSelectedMediaItems(0)
 		if items_count == 0 then
+			reaper.MB("No Media Items were selected!", "Error", 0)
 			return
 		end
 
@@ -598,8 +617,6 @@ local VAF = {
 		--if env_opacity then
 		--	reaper.Envelope_SortPoints(env_opacity)
 		--end
-
-		reaper.Undo_EndBlock("[VAF] Apply Presset", 0)
 		reaper.UpdateArrange()
 	end
 }
@@ -760,15 +777,7 @@ function GUI:Init()
 		}
 	end)
 
-	VAF:AddPreset("CV H+V Flips", function(index, item)
-		return {
-			v = math.floor((index+1)/2) % 2 == 0 and -1 or 1,
-			h = math.floor((index)/2) % 2 == 0 and -1 or 1,
-			r = nil,
-		}
-	end)
-
-	VAF:AddPreset("CCV H+V Flips", function(index, item)
+	VAF:AddPreset("CW H+V Flips", function(index, item)
 		return {
 			v = math.floor((index)/2) % 2 == 0 and -1 or 1,
 			h = math.floor((index+1)/2) % 2 == 0 and -1 or 1,
@@ -776,32 +785,25 @@ function GUI:Init()
 		}
 	end)
 
-	local preset_names = {
-		"AspectratioFixer.eel",
-		"BoxCrop.eel",
-		"Cropper.eel",
-		"Flipper.eel",
-		"Opacity.eel",
-		"PositionOffset.eel",
-		"Pre-Compose.eel",
-		"Rotate.eel",
-		"Scale.eel",
-		"Chroma.eel",
-		"SolidColorFill.eel",
-		"Null.eel",
-	}
+	VAF:AddPreset("CCW H+V Flips", function(index, item)
+		return {
+			v = math.floor((index+1)/2) % 2 == 0 and -1 or 1,
+			h = math.floor((index)/2) % 2 == 0 and -1 or 1,
+			r = nil,
+		}
+	end)
 
-	for _, preset_name in pairs(preset_names) do
-		local file = io.open(script_path .. "\\VP_Presets\\" .. preset_name, 'r')
+	for file_name, file_path in pairs(GetFilesInDir("VP_Presets")) do
+		local file = io.open(file_path, 'r')
 
 		local content = file:read("*all")
-		VAF.VP_Presets[preset_name] = content
+		VAF.VP_Presets[file_name] = content
 	end
 
 	--------------------------------------------------------------------------------------------------------------------
 
-	for _, image_name in pairs(self.UI_Data.images_to_load) do
-		local image = ImGui.CreateImage(script_path .. "\\images\\" .. image_name)
+	for image_name, image_dir in pairs(GetFilesInDir("images")) do
+		local image = ImGui.CreateImage(image_dir)
 		reaper.ImGui_Attach(self.ctx, image)
 		self.UI_Data.image_binaries[image_name] = image
 	end
@@ -886,7 +888,9 @@ function GUI:TAB_Flipper()
 			volume_to_opacity	= self.UI_Data.CHB_volume_to_opacity,
 			add_flips			= self.UI_Data.CHB_add_flips
 		}
-		VAF:ApplyPresset(self.UI_Data.selected_preset + 1, params)
+		UndoWrap("[VAF] Apply Presset", function()
+			VAF:ApplyPresset(self.UI_Data.selected_preset + 1, params)
+		end)
 	end
 
 	ImGui.SameLine(self.ctx)
@@ -1136,7 +1140,10 @@ function GUI:TAB_Helpers()
 		if ImGui_ButtonWithHint(self.ctx, "Stretch to Next", 0.5, "") then
 			UndoWrap("[VAF] Stretch to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
-				if item_count == 0 then return end
+				if item_count == 0 then
+					reaper.MB("No Media Items were selected!", "Error", 0)
+					return
+				end
 
 				reaper.PreventUIRefresh(1)
 
@@ -1194,21 +1201,30 @@ function GUI:TAB_FAQ()
 		)
 
 
-		local faq_1 = ""
-				.."Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.\n"
-				.."\n"
-				.."Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key\n"
-				.."It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.\n"
-				.."\n"
-				.."After the Chroma-Key is aplied everything else behind our video will appear untouched.\n"
-				.."\n"
+		local faq_1 = MultLineStringConstructor(
+			"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.",
+			"",
+			"Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key",
+			"It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.",
+			"",
+			"After the Chroma-Key is aplied everything else behind our video will appear untouched.",
+			""
+		)
 
+		local pad_x, pad_y		= ImGui.GetStyleVar(self.ctx, ImGui.StyleVar_FramePadding())
+		local avail_x, avail_y	= ImGui.GetContentRegionAvail(self.ctx)
+
+		--ImGui.SetNextItemWidth(self.ctx, 100)
+		ImGui.PushItemWidth(self.ctx, 100)
 		ImGui.InputTextMultiline(
 			self.ctx, "FAQ_1",
 			faq_1,
-			-FLT_MIN, ImGui.GetTextLineHeight(self.ctx) * 16,
-			ImGui.InputTextFlags_ReadOnly()
+			-FLT_MIN, ImGui.GetTextLineHeight(self.ctx) * 8,
+			0
+			--| ImGui.InputTextFlags_ReadOnly()
+			| ImGui.InputTextFlags_NoHorizontalScroll()
 		)
+		ImGui.PopItemWidth(self.ctx)
 
 		ImGui.EndGroup(self.ctx)
 		ImGui.EndChild(self.ctx)
@@ -1256,7 +1272,7 @@ function GUI:DrawUI()
 
 	--------------------------------------------------------------------------------------------------------------------
 
-	if ImGui.BeginTabBar(self.ctx, '##tabs', ImGui.TabBarFlags_None()) then
+	if ImGui.BeginTabBar(self.ctx, "Tabs", ImGui.TabBarFlags_None()) then
 		if ImGui.BeginTabItem(self.ctx, "Flipper") then
 			self:TAB_Flipper()
 			ImGui.EndTabItem(self.ctx)
