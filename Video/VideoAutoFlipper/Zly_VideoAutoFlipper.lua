@@ -9,6 +9,12 @@ do	-- Allows to require scripts relatively to this current script's path.
 	package.path = filename:match("^(.*)[\\/](.-)$") .. "/?.lua;" .. package.path
 end
 
+local function UndoWrap(block_name, func)
+	reaper.Undo_BeginBlock()
+	func()
+	reaper.Undo_EndBlock(block_name, 0)
+end
+
 --[[===================================================]]--
 --[[============== TEMP CODE FOR DEBUG ================]]--
 --[[vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv]]--
@@ -325,10 +331,16 @@ local function ImGui_ButtonWithHint(ctx, button_text, alignment, desc)
 
 	alignment = alignment or 0.5
 
-	local window_width = ImGui.CalcItemWidth(ctx)
-	local text_width   = ImGui.CalcTextSize(ctx, button_text)
 
-	ImGui.SetCursorPosX(ctx, window_width * alignment - text_width / 2.0)
+	local pad_x, pad_y		= ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding())
+	local avail_x, avail_y	= ImGui.GetContentRegionAvail(ctx)
+	local text_width		= ImGui.CalcTextSize(ctx, button_text)
+
+	local frame_size = text_width + pad_x * 2.0
+	local pos = (avail_x - frame_size) * alignment
+
+	ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + pos)
+
 	local rv = ImGui.Button(ctx, button_text)
 
 	if desc == "" or not ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort()) then
@@ -399,10 +411,12 @@ local VAF = {
 	preset_names = {},
 	presets		 = {},
 
+
 	AddPreset = function(self, name, func)
 		table.insert(self.preset_names, name)
 		self.presets[name] = func
 	end,
+
 
 	PreviewPresset = function(self, preset_index, index)
 		local found_preset = self.presets[self.preset_names[preset_index]]
@@ -410,11 +424,13 @@ local VAF = {
 			return found_preset(index, nil)
 		else
 			return {
-				h = 0,
-				v = 0,
+				h = nil,
+				v = nil,
+				r = nil,
 			}
 		end
 	end,
+
 
 	AddVFX = function(self, track, name, presset_name, force_add)
 		local fx = reaper.TrackFX_GetByName(track, name, false)
@@ -429,6 +445,7 @@ local VAF = {
 	--[[
 	params = {
 		volumet_to_opcaity = false
+		add_flips = true
 	}
 	--]]
 	ApplyPresset = function(self, preset_index, params)
@@ -448,7 +465,7 @@ local VAF = {
 		local env_vert_flip		= nil
 		local env_opacity		= nil
 
-		local flips_check = found_preset(0, 0)
+		local flips_check = found_preset(0, nil)
 
 		-- TODO: Prepare envelopes
 
@@ -533,7 +550,15 @@ local VAF = {
 			end
 		end
 
-		reaper.Envelope_SortPoints(env_horiz_flip)
+		if env_horiz_flip then
+			reaper.Envelope_SortPoints(env_horiz_flip)
+		end
+		if env_vert_flip then
+			reaper.Envelope_SortPoints(env_vert_flip)
+		end
+		if env_opacity then
+			reaper.Envelope_SortPoints(env_opacity)
+		end
 
 		reaper.Undo_EndBlock("[VAF] Apply Presset", 0)
 		reaper.UpdateArrange()
@@ -557,6 +582,12 @@ local GUI = {
 		images_to_load = {
 			"img_rosn.png",
 			"Img_rosnBass.png",
+			"img_jokeguy.png",
+			"img_sigma.png",
+			"img_squid.png",
+			"img_timeOfSigma.png",
+			"img_who.png",
+			"img_zenkuru.png",
 		},
 		image_binaries = {},
 		selected_image = "",
@@ -577,7 +608,7 @@ local GUI = {
 		CHB_add_flips		= true,
 		CHB_add_flips_click = false,
 		--------------------------------------------
-		CHB_volume_to_opacity		= false,
+		CHB_volume_to_opacity		= true,
 		CHB_volume_to_opacity_click = false,
 
 		--------------------------------------------
@@ -624,7 +655,7 @@ local GUI = {
 	LoopUI = function(self)
 		self:StyleVar_Processor()
 
-		ImGui.SetNextWindowSize(self.ctx, 290, 371, ImGui.Cond_Always())
+		ImGui.SetNextWindowSize(self.ctx, 288, 371, ImGui.Cond_Always())
 
 		local window_visible, window_open = select(1, ImGui.Begin(self.ctx, self.name.." "..self.version, true, self.window_flags))
 
@@ -718,6 +749,7 @@ function GUI:Init()
 		"Scale.eel",
 		"Chroma.eel",
 		"SolidColorFill.eel",
+		"Null.eel",
 	}
 
 	for _, preset_name in pairs(preset_names) do
@@ -835,7 +867,15 @@ end
 
 local function Add_fx(name, presset_name, force_add)
 	force_add = force_add or false
-	for i = 0, reaper.CountSelectedTracks(0) do
+
+	local track_count = reaper.CountSelectedTracks(0)
+
+	if track_count == 0 then
+		reaper.MB("No tracks were selected!", "Error", 0)
+		return
+	end
+
+	for i = 0, track_count-1 do
 		VAF:AddVFX(
 			reaper.GetSelectedTrack(0, i),
 			name, presset_name,
@@ -845,8 +885,14 @@ local function Add_fx(name, presset_name, force_add)
 end
 
 function GUI:TAB_VFX()
-	ImGui_AlignedText(self.ctx, "Select tracks you want to apply any FX to.", 0.5)
-	ImGui_AlignedText(self.ctx, "Hover over each button to\nget desciption for them.", 0.5)
+	ImGui_AlignedText(self.ctx, "Select tracks you want to", 0.5)
+	ImGui_AlignedText(self.ctx, "apply any FX to.", 0.5)
+
+	ImGui.Separator(self.ctx)
+
+	ImGui_AlignedText(self.ctx, "Hover over each button to", 0.5)
+	ImGui_AlignedText(self.ctx, "get desciption for them.", 0.5)
+
 	if ImGui.BeginChild(self.ctx, "VFX", 0, 0, true, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
 		--------------------------------------------------------------------------------------------------------------------
 		ImGui.SeparatorText(self.ctx, "TRANSFORM")
@@ -855,25 +901,35 @@ function GUI:TAB_VFX()
 		if ImGui_ButtonWithHint(self.ctx, "Position Offset", 0.5,
 			"Sets the Video's position in percentage."
 		) then
-			Add_fx("VAF: Position Offset", "PositionOffset.eel", true)
+			UndoWrap("[VAF] Add Position Offset", function()
+				Add_fx("VAF: Position Offset", "PositionOffset.eel", true)
+			end)
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Rotate", 0.5) then
-			Add_fx("VAF: Rotate", "Rotate.eel", true)
+			UndoWrap("[VAF] Rotate", function()
+				Add_fx("VAF: Rotate", "Rotate.eel", true)
+			end)
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Scale", 0.5) then
-			Add_fx("VAF: Scale", "Scale.eel", true)
+			UndoWrap("[VAF] Scale", function()
+				Add_fx("VAF: Scale", "Scale.eel", true)
+			end)
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Opacity", 0.5) then
-			Add_fx("VAF: Opacity", "Opacity.eel", true)
+			UndoWrap("[VAF] Opacity", function()
+				Add_fx("VAF: Opacity", "Opacity.eel", true)
+			end)
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Flipper", 0.5,
 			"Mainly used for fliping the videos,\nregular scaling doesn't let you do that."
 		) then
-			Add_fx("VAF: Flipper", "Flipper.eel", true)
+			UndoWrap("[VAF] Flipper", function()
+				Add_fx("VAF: Flipper", "Flipper.eel", true)
+			end)
 		end
 
 		--------------------------------------------------------------------------------------------------------------------
@@ -883,13 +939,17 @@ function GUI:TAB_VFX()
 		if ImGui_ButtonWithHint(self.ctx, "Aspectratio Fixer", 0.5,
 			"Fixes aspectratio of the videos that don't match the size of the composition."
 		) then
-			Add_fx("VAF: Aspectratio Fixer", "AspectratioFixer.eel", true)
+			UndoWrap("[VAF] Aspectratio Fixer", function()
+				Add_fx("VAF: Aspectratio Fixer", "AspectratioFixer.eel", true)
+			end)
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Pre-Compose", 0.5,
 			"Bakes the current rendered frame as if it was After Effect's Pre-Compose kind of thing."
 		) then
-			Add_fx("VAF: Pre-Compose", "Pre-Compose.eel", true)
+			UndoWrap("[VAF] Pre-Compose", function()
+				Add_fx("VAF: Pre-Compose", "Pre-Compose.eel", true)
+			end)
 		end
 
 		--------------------------------------------------------------------------------------------------------------------
@@ -897,19 +957,27 @@ function GUI:TAB_VFX()
 		--------------------------------------------------------------------------------------------------------------------
 
 		if ImGui_ButtonWithHint(self.ctx, "Box Crop", 0.5) then
-			Add_fx("VAF: Box Crop", "BoxCrop.eel", true)
+			UndoWrap("[VAF] Box Crop", function()
+				Add_fx("VAF: Box Crop", "BoxCrop.eel", true)
+			end)
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Cropper", 0.5) then
-			Add_fx("VAF: Cropper", "Cropper.eel", true)
+			UndoWrap("[VAF] Cropper", function()
+				Add_fx("VAF: Cropper", "Cropper.eel", true)
+			end)
 		end
 
 		--------------------------------------------------------------------------------------------------------------------
 		ImGui.SeparatorText(self.ctx, "MISC")
 		--------------------------------------------------------------------------------------------------------------------
 
-		if ImGui_ButtonWithHint(self.ctx, "Solid Color Fill", 0.5) then
-			Add_fx("VAF: Solid Color Fill", "SolidColorFill.eel", true)
+		if ImGui_ButtonWithHint(self.ctx, "Solid Color Fill", 0.5,
+		"Just fills the whole composition with a solid color."
+		) then
+			UndoWrap("[VAF] Solid Color Fill", function()
+				Add_fx("VAF: Solid Color Fill", "SolidColorFill.eel", true)
+			end)
 		end
 
 		--------------------------------------------------------------------------------------------------------------------
@@ -920,10 +988,12 @@ function GUI:TAB_VFX()
 			MultLineStringConstructor(
 				"A very inmportant effect that needs to be placed at the end of the chain of those effects that are listed above.",
 				"",
-				"It's done in such way due to Reaper's limitations/absurtd control over the video elements in the rendering, so this is a workaround for compositing alike methods of working with videos."
+				"It's done in such way due to Reaper's limitations/absurd control over the video elements in the rendering, so this is a workaround for compositing alike methods of working with videos."
 			)
 		) then
-			Add_fx("VAF: Chroma-key", "Chroma.eel", true)
+			UndoWrap("[VAF] Chroma-key", function()
+				Add_fx("VAF: Chroma-key", "Chroma.eel", true)
+			end)
 		end
 
 		--------------------------------------------------------------------------------------------------------------------
@@ -932,9 +1002,186 @@ function GUI:TAB_VFX()
 	end
 end
 
+
+local function create_AI(isPooled)
+	isPooled = isPooled or false
+
+	local item_count = reaper.CountSelectedMediaItems(0)
+
+	if item_count == 0 then
+		reaper.MB("No Media Items were selected!", "Error", 0)
+		return
+	end
+
+	for i = 0, item_count-1 do
+		local item 			= reaper.GetSelectedMediaItem(0, i)
+		local item_track	= reaper.GetMediaItemTrack(item)
+
+		local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+		local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+
+		local fx_null = VAF:AddVFX(item_track, "VAF: NULL", "Null.eel", false)
+		local env_null = reaper.GetFXEnvelope(item_track, fx_null, 0, true)
+
+		local _ = reaper.InsertAutomationItem(
+			env_null,
+			isPooled and 69 or -1,
+			item_pos, item_len
+		)
+	end
+end
+
+
+function GUI:TAB_Helpers()
+	ImGui_AlignedText(self.ctx, "Select items/tracks you want to", 0.5)
+	ImGui_AlignedText(self.ctx, "apply any of the helpers to.", 0.5)
+
+	ImGui.Separator(self.ctx)
+
+	ImGui_AlignedText(self.ctx, "Hover over each button to", 0.5)
+	ImGui_AlignedText(self.ctx, "get desciption for them.", 0.5)
+
+	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "Automation Items")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Create Pooled", 0.5,
+			MultLineStringConstructor(
+				"Creates Pooled Automation Items in a dummy track.",
+				"",
+				"So every created Automation Item is mimicking each other."
+			)
+		) then
+			UndoWrap("[VAF] Create Pooled", function()
+				create_AI(true)
+			end)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Create Non-pooled", 0.5,
+			MultLineStringConstructor(
+				"Creates Non-pooled Automation Items in a dummy track.",
+				"",
+				"So each envelope is unique."
+			)
+		) then
+			UndoWrap("[VAF] Create Non-Pooled", function()
+				create_AI(false)
+			end)
+		end
+
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "Media Items")
+		--------------------------------------------------------------------------------------------------------------------
+
+		if ImGui_ButtonWithHint(self.ctx, "Extend to Next", 0.5, "") then
+			UndoWrap("[VAF] Extend to Next", function()
+				local item_count = reaper.CountSelectedMediaItems()
+				if item_count == 0 then return end
+
+				for id = 0, item_count - 2 do
+					local item		= reaper.GetSelectedMediaItem(0, id)
+					local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+
+					local item_start		= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+					local next_item_start	= reaper.GetMediaItemInfo_Value(next_item, "D_POSITION")
+					local target_length		= next_item_start - item_start
+
+					reaper.SetMediaItemLength(item, target_length, false)
+				end
+
+				reaper.UpdateArrange()
+			end)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Stretch to Next", 0.5, "") then
+			UndoWrap("[VAF] Stretch to Next", function()
+				local item_count = reaper.CountSelectedMediaItems()
+				if item_count == 0 then return end
+
+				reaper.PreventUIRefresh(1)
+
+				for id = 0, item_count - 2 do
+					local item		= reaper.GetSelectedMediaItem(0, id)
+					local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+
+					local item_start		= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+					local item_duration		= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+					local item_take 		= reaper.GetActiveTake(item)
+					local item_playrate		= reaper.GetMediaItemTakeInfo_Value(item_take, "D_PLAYRATE")
+
+					local next_item_start	= reaper.GetMediaItemInfo_Value(next_item, "D_POSITION")
+
+					local target_duration	= next_item_start - item_start
+					local target_playrate	= item_playrate * (item_duration/target_duration)
+
+					reaper.SetMediaItemLength(item, target_duration, false)
+					reaper.SetMediaItemTakeInfo_Value(item_take, "D_PLAYRATE", target_playrate)
+				end
+
+				reaper.UpdateArrange()
+			end)
+		end
+
+		if ImGui_ButtonWithHint(self.ctx, "Silent Fill to Next", 0.5, "") then
+			UndoWrap("[VAF] Silent Fill to Next", function()
+
+			end)
+		end
+
+		ImGui.EndChild(self.ctx)
+	end
+end
+
+
+function GUI:TAB_FAQ()
+	local fla = 0
+		| reaper.ImGui_WindowFlags_NoResize()
+		| ImGui.WindowFlags_AlwaysVerticalScrollbar()
+	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, fla) then
+		ImGui.BeginGroup(self.ctx)
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "Why Chroma Key thing?")
+		--------------------------------------------------------------------------------------------------------------------
+
+		ImGui.Text(self.ctx, ""
+			.."Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.\n"
+			.."\n"
+			.."Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key\n"
+			.."It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.\n"
+			.."\n"
+			.."After the Chroma-Key is aplied everything else behind our video will appear untouched.\n"
+			.."\n"
+		)
+
+
+		local faq_1 = ""
+				.."Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.\n"
+				.."\n"
+				.."Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key\n"
+				.."It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.\n"
+				.."\n"
+				.."After the Chroma-Key is aplied everything else behind our video will appear untouched.\n"
+				.."\n"
+
+		ImGui.InputTextMultiline(
+			self.ctx, "FAQ_1",
+			faq_1,
+			-FLT_MIN, ImGui.GetTextLineHeight(self.ctx) * 16,
+			ImGui.InputTextFlags_ReadOnly()
+		)
+
+		ImGui.EndGroup(self.ctx)
+		ImGui.EndChild(self.ctx)
+	end
+end
+
+
 function GUI:DrawUI()
 	local _
+
 	--------------------------------------------------------------------------------------------------------------------
+
 	ImGui_AlignedElements(
 		self.ctx,
 		0.5,
@@ -966,6 +1213,8 @@ function GUI:DrawUI()
 		end
 	)
 
+	--------------------------------------------------------------------------------------------------------------------
+
 	if ImGui.BeginTabBar(self.ctx, '##tabs', ImGui.TabBarFlags_None()) then
 		if ImGui.BeginTabItem(self.ctx, "Flipper") then
 			self:TAB_Flipper()
@@ -973,6 +1222,14 @@ function GUI:DrawUI()
 		end
 		if ImGui.BeginTabItem(self.ctx, "VFX") then
 			self:TAB_VFX()
+			ImGui.EndTabItem(self.ctx)
+		end
+		if ImGui.BeginTabItem(self.ctx, "Helpers") then
+			self:TAB_Helpers()
+			ImGui.EndTabItem(self.ctx)
+		end
+		if ImGui.BeginTabItem(self.ctx, "FAQ") then
+			self:TAB_FAQ()
 			ImGui.EndTabItem(self.ctx)
 		end
 		ImGui.EndTabBar(self.ctx)

@@ -1,0 +1,33 @@
+//Rotate
+//@param1:rotate 'rotate' 0 -360 360 0 1
+//@param2:filter 'filter' 0 0 1 0.5 1
+
+//@param4:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
+
+gfx_b = p_bg_clr;
+gfx_g = 1-p_bg_clr;
+gfx_fillrect(0, 0, project_w, project_h);
+
+bg_img = input_ismaster() ? -2 : input_track(0);
+(bg_img) ? (
+  gfx_mode = (filter > 0.5) ? 256 : 0; // Filtering
+
+  dw = project_w & -2;
+  dh = project_h & -2;
+  x  = (project_w - dw + xoffs * (project_w + dw)) >> 1;
+  y  = (project_h - dh + yoffs * (project_h + dh)) >> 1;
+
+  input_info(0, src_w, src_h);
+
+  sc  = 2.0;
+  sc2 = sc*.5 - 0.5;
+
+  gfx_rotoblit(
+    0,
+    rotate * $pi / 180,
+    x - project_w * sc2, y - project_h * sc2,
+    project_w * sc, project_h * sc,
+    -src_w * sc2, -src_h * sc2,
+    src_w * sc, src_h * sc
+  );
+);

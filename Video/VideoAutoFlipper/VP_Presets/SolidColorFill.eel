@@ -1,0 +1,15 @@
+// Solid Color Fill
+//@param1:p_r "R" 1 0 1 0.5 0.05
+//@param2:p_g "G" 0 0 1 0.5 0.05
+//@param3:p_b "B" 0 0 1 0.5 0.05
+//@param4:p_a "A" 1 0 1 0.5 0.05
+
+
+gfx_blit(0, 0);
+
+gfx_r = p_r;
+gfx_g = p_g;
+gfx_b = p_b;
+gfx_a = p_a;
+
+gfx_fillrect(0, 0, project_w, project_h);

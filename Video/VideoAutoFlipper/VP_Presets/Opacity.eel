@@ -1,0 +1,18 @@
+//Opacity
+//@param1:opacity 'Opacity' 1
+
+bg_img = input_ismaster() ? -2 : input_track(0);
+(bg_img) ? (
+  gfx_a2=0;
+  gfx_blit((opacity < 1) ? bg_img : -2, 1);
+  gfx_a = opacity;
+  gfx_blit(
+    // src id
+    // preserve aspect
+    0, 0,
+    // x, y
+    0, 0,
+    // w, h
+    project_w, project_h
+  );
+);

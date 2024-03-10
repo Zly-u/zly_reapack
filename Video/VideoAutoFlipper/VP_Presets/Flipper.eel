@@ -1,0 +1,30 @@
+// Flipper
+//@param<idx>[:varname] 'name' [defval minval maxval centval step]
+//@param1:h_flip 'Horiz flip' 0 0 1 0.5 1
+//@param2:v_flip 'Vert flip' 0 0 1 0.5 1
+
+//@param4:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
+
+gfx_b = p_bg_clr;
+gfx_g = 1-p_bg_clr;
+gfx_fillrect(0, 0, project_w, project_h);
+
+(input_track(0)) ? (
+  input_info(0, w, h);
+
+
+  gfx_deltablit(
+      0,
+      0, 0,
+      project_w, project_h,
+
+      // starting source coordinates
+       w*h_flip,           h*v_flip,
+
+       // source delta-X/delta-Y with respect to output X
+      (w * ((h_flip == 1) ? -1 : 1)) / project_w, 0,
+
+      // source delta-X/delta-Y with respect to output Y
+      0, (h * ((v_flip == 1) ? -1 : 1))/project_h
+  );
+);

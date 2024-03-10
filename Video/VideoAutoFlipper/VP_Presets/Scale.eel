@@ -1,0 +1,43 @@
+//Scale
+//@param<idx>[:varname] 'name' [defval minval maxval centval step]
+//@param1:p_scale 'Scale' 1 0.01 2 1
+//@param2:p_scale_x 'X Scale' 1 0.01 2 1
+//@param3:p_scale_y 'Y Scale' 1 0.01 2 1
+//@param4:filter 'filter' 1 0 1 0.5 1
+
+//@param6:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
+
+gfx_b = p_bg_clr;
+gfx_g = 1-p_bg_clr;
+gfx_fillrect(0, 0, project_w, project_h);
+
+bg_img = input_ismaster() ? -2 : input_track(0);
+(bg_img) ? (
+  gfx_mode = (filter > 0.5) ? 256 : 0;
+
+  hw = project_w >> 1;
+  hh = project_h >> 1;
+
+  input_info(0, src_w, src_h);
+
+  gfx_blit(
+    0, 0,
+
+    // Viewport //
+
+    // x, y
+    hw - hw * p_scale_x * p_scale,
+    hh - hh * p_scale_y * p_scale,
+    // w, h
+    project_w * p_scale_x * p_scale,
+    project_h * p_scale_y * p_scale,
+
+    // Source //
+
+    // srcx, srcy
+    0, 0,
+    // srcw, srch
+    src_w,
+    src_h
+  );
+);

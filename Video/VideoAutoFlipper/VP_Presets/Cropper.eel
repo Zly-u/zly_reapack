@@ -1,0 +1,42 @@
+//Cropper
+//By Zly
+
+//@param1:left_cut  "Left" 0 0 0.5 0.25 0.01
+//@param2:right_cut "Right" 0 0 0.5 0.25 0.01
+//@param4:top_cut  "Top" 0 0 0.5 0.25 0.01
+//@param5:bottom_cut "Bottom" 0 0 0.5 0.25 0.01
+
+//@param7:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
+
+gfx_b = p_bg_clr;
+gfx_g = 1-p_bg_clr;
+gfx_fillrect(0, 0, project_w, project_h);
+
+////////////////////////////////////////////////////
+
+bg_img = input_track(0);
+(bg_img) ? (
+  input_info(0, src_w, src_h);
+
+  gfx_blit(
+    0, 0,
+
+    // Viewport //
+
+    // x, y
+    project_w * left_cut,
+    project_h * top_cut,
+    // w, h
+    project_w - project_w * (right_cut + left_cut),
+    project_h - project_h * (bottom_cut + top_cut),
+
+    // Source //
+
+    // x, y
+    src_w * left_cut,
+    src_h * top_cut,
+    // w, h
+    src_w - src_w * (right_cut + left_cut),
+    src_h - src_h * (bottom_cut + top_cut)
+  );
+);

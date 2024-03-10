@@ -1,0 +1,18 @@
+// Aspectratio fixer
+//@param1:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
+
+gfx_b = p_bg_clr;
+gfx_g = 1-p_bg_clr;
+gfx_fillrect(0, 0, project_w, project_h);
+bg_img = input_ismaster() ? -2 : input_track(0);
+(bg_img) ? (
+  gfx_blit(
+    // src id
+    // preserve aspect
+    0, 1,
+    // x, y
+    0, 0,
+    // w, h
+    project_w, project_h
+  );
+);

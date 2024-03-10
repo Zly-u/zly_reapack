@@ -1,0 +1,25 @@
+//Position Offset
+//@param<idx>[:varname] 'name' [defval minval maxval centval step]
+//@param1:p_x_offs 'X offset' 0 -1 1 0 0.001
+//@param2:p_y_offs 'Y offset' 0 -1 1 0 0.001
+
+//@param4:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
+
+gfx_b = p_bg_clr;
+gfx_g = 1-p_bg_clr;
+gfx_fillrect(0, 0, project_w, project_h);
+
+bg_img = input_ismaster() ? -2 : input_track(0);
+(bg_img) ? (
+  gfx_mode = (filter > 0.5) ? 256 : 0;
+
+  gfx_blit(
+    // src id
+    // preserve aspect
+    0, 0,
+    // x, y
+    project_w * p_x_offs, project_h * p_y_offs,
+    // w, h
+    project_w, project_h
+  );
+);
