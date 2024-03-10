@@ -492,34 +492,70 @@ local VAF = {
 		--------------------------------------------------------------------------------
 		--------------------------------------------------------------------------------
 
-		-- Process flippings
+		local pooled_envelopes = {
+			flips_h = {},
+			flips_v = {},
+			opacity = {},
+		}
+
 		for index = 0, items_count - 1 do
 			local item		= reaper.GetSelectedMediaItem(0, index)
 			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-			--local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+			local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+			local item_vol  = reaper.GetMediaItemInfo_Value(item, "D_VOL")
 
 			local evaluated_flips = found_preset(index, item)
 
-			-- TODO: Figure out inseritng points into pooled automation items.
-			--local ai_i = reaper.InsertAutomationItem(
-			--	env_horiz_flip,
-			--	math.max(evaluated_flips.h, 0)+1,
-			--	---1,
-			--	item_pos, item_len
-			--)
+			if env_horiz_flip then
+				local flip = math.max(evaluated_flips.h, 0)+69
+				local ai_i = reaper.InsertAutomationItem(
+					env_horiz_flip,
+					flip,
+					item_pos, item_len
+				)
+				pooled_envelopes.flips_h[flip] = ai_i
+			end
+
+			if env_vert_flip then
+				local flip = math.max(evaluated_flips.v, 0)+69
+				local ai_i = reaper.InsertAutomationItem(
+					env_vert_flip,
+					flip,
+					item_pos, item_len
+				)
+				pooled_envelopes.flips_v[flip] = ai_i
+			end
+
+			if env_opacity then
+				local vol_id = math.floor(item_vol*255)
+				local ai_i = reaper.InsertAutomationItem(
+					env_opacity,
+					vol_id,
+					item_pos, item_len
+				)
+				pooled_envelopes.opacity[vol_id] = ai_i
+			end
+		end
+
+		-- Process flippings
+		for index = 0, items_count-1 do
+			local item		= reaper.GetSelectedMediaItem(0, index)
+			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+
+			local evaluated_flips = found_preset(index, item)
 
 			if env_horiz_flip then
 				reaper.InsertEnvelopePointEx(
 					-- env
 					env_horiz_flip,
 					-- autoitem_idx
-					-1,
+					pooled_envelopes.flips_h[math.max(evaluated_flips.h, 0)+69] or -1,
 					-- pos, val
 					item_pos, math.max(evaluated_flips.h, 0),
 					-- shape, tension
 					1, 1,
 					-- isSelected, noSort
-					false, true
+					false, false
 				)
 			end
 
@@ -528,37 +564,40 @@ local VAF = {
 					-- env
 					env_vert_flip,
 					-- autoitem_idx
-					-1,
+					pooled_envelopes.flips_v[math.max(evaluated_flips.v, 0)+69] or -1,
 					-- pos, val
 					item_pos, math.max(evaluated_flips.v, 0),
 					-- shape, tension
 					1, 1,
 					-- isSelected, noSort
-					false, true
+					false, false
 				)
 			end
 
 			-- Volume -> Opacity
 			if env_opacity then
+				local item_vol	= reaper.GetMediaItemInfo_Value(item, "D_VOL")
+
 				reaper.InsertEnvelopePointEx(
 					env_opacity,
-					-1,
-					item_pos, reaper.GetMediaItemInfo_Value(item, "D_VOL"),
+					pooled_envelopes.opacity[math.floor(item_vol*255)] or -1,
+					item_pos, item_vol,
 					1, 1,
-					false, true
+					false, false
 				)
 			end
 		end
 
-		if env_horiz_flip then
-			reaper.Envelope_SortPoints(env_horiz_flip)
-		end
-		if env_vert_flip then
-			reaper.Envelope_SortPoints(env_vert_flip)
-		end
-		if env_opacity then
-			reaper.Envelope_SortPoints(env_opacity)
-		end
+
+		--if env_horiz_flip then
+		--	reaper.Envelope_SortPoints(env_horiz_flip)
+		--end
+		--if env_vert_flip then
+		--	reaper.Envelope_SortPoints(env_vert_flip)
+		--end
+		--if env_opacity then
+		--	reaper.Envelope_SortPoints(env_opacity)
+		--end
 
 		reaper.Undo_EndBlock("[VAF] Apply Presset", 0)
 		reaper.UpdateArrange()
@@ -655,7 +694,7 @@ local GUI = {
 	LoopUI = function(self)
 		self:StyleVar_Processor()
 
-		ImGui.SetNextWindowSize(self.ctx, 288, 371, ImGui.Cond_Always())
+		ImGui.SetNextWindowSize(self.ctx, 288, 375, ImGui.Cond_Always())
 
 		local window_visible, window_open = select(1, ImGui.Begin(self.ctx, self.name.." "..self.version, true, self.window_flags))
 
@@ -1212,6 +1251,8 @@ function GUI:DrawUI()
 			})
 		end
 	)
+
+	ImGui.Separator(self.ctx)
 
 	--------------------------------------------------------------------------------------------------------------------
 
