@@ -1273,23 +1273,45 @@ function GUI:TAB_FAQ()
 		--------------------------------------------------------------------------------------------------------------------
 		ImGui.SeparatorText(self.ctx, "Why Chroma Key thing?")
 		--------------------------------------------------------------------------------------------------------------------
-
+		local max_line_len = 36
 		ImGui.Text(self.ctx,
 			TextWrapper(
-				"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do."
-				..""
-				.."Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key"
-				.."It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with."
-				..""
-				.."After the Chroma-Key is aplied everything else behind our video will appear untouched."
-				.."",
-				#("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-					true
+				"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.",
+				max_line_len,
+				true
 			)
 		)
 
+		ImGui.Text(self.ctx,
+			TextWrapper(
+				"Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key",
+				max_line_len,
+				true
+			)
+		)
 
-
+		ImGui.Text(self.ctx,
+			TextWrapper(
+					"It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.",
+				max_line_len,
+				true
+			)
+		)
+		ImGui.Text(self.ctx,
+			TextWrapper(
+				"After the Chroma-Key is aplied everything else behind our video will appear untouched.",
+				max_line_len,
+				true
+			)
+		)
+		ImGui.Text(self.ctx,
+			TextWrapper(
+				"Without this the FXs would be applied to the videos behind our current video we are working with.",
+				max_line_len,
+				true
+			)
+		)
+		
 		--local pad_x, pad_y		= ImGui.GetStyleVar(self.ctx, ImGui.StyleVar_FramePadding())
 		--local avail_x, avail_y	= ImGui.GetContentRegionAvail(self.ctx)
 		--
