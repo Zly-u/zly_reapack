@@ -494,9 +494,9 @@ local function hsl2rgb(H, S, L, reaper_color)
 	local r = math.floor((color[1]+m)*255)
 	local g = math.floor((color[2]+m)*255)
 	local b = math.floor((color[3]+m)*255)
-	outColor		= r
-	outColor		= (outColor << 8) | g
-	outColor		= (outColor << 8) | b
+	outColor = r
+	outColor = (outColor << 8) | g
+	outColor = (outColor << 8) | b
 	if reaper_color then
 		outColor = outColor | 0x1000000
 	else
@@ -507,14 +507,9 @@ end
 
 local VAF = {
 	VP_Presets = {},
-
-	params = {
-
-	},
-
+	
 	preset_names = {},
 	presets		 = {},
-
 
 	AddPreset = function(self, name, func)
 		table.insert(self.preset_names, name)
@@ -548,7 +543,7 @@ local VAF = {
 
 	--[[
 	params = {
-		volumet_to_opcaity = false
+		volume_to_opcaity = false
 		add_flips = true
 		flip_only_on_pitch_change = false
 	}
@@ -691,18 +686,9 @@ local GUI = {
 	UI_Data = {
 		preview_index = 0,
 		--------------------------------------------
-		images_to_load = {
-			"img_rosn.png",
-			"Img_rosnBass.png",
-			"img_jokeguy.png",
-			"img_sigma.png",
-			"img_squid.png",
-			"img_timeOfSigma.png",
-			"img_who.png",
-			"img_zenkuru.png",
-		},
-		image_binaries = {},
-		selected_image = "",
+		image_names		= {},
+		image_binaries	= {},
+		selected_image_binary = nil,
 		--------------------------------------------
 		selected_preset		  = 0,
 		selected_preset_click = 0,
@@ -861,6 +847,7 @@ function GUI:Init()
 	for image_name, image_dir in pairs(GetFilesInDir("images")) do
 		local image = ImGui.CreateImage(image_dir)
 		reaper.ImGui_Attach(self.ctx, image)
+		table.insert(self.UI_Data.image_names, image_name)
 		self.UI_Data.image_binaries[image_name] = image
 	end
 
@@ -868,7 +855,7 @@ function GUI:Init()
 		self.UI_Data.presets_string = self.UI_Data.presets_string .. name .. '\0'
 	end
 
-	self.UI_Data.selected_image = self.UI_Data.images_to_load[math.random(1, #self.UI_Data.images_to_load)]
+	self.UI_Data.selected_image_binary = self.UI_Data.image_binaries[self.UI_Data.image_names[math.random(1, #self.UI_Data.image_names)]]
 end
 
 
@@ -908,7 +895,7 @@ function GUI:TAB_Flipper()
 		local border_col = ImGui.GetStyleColor(self.ctx, ImGui.Col_Border())
 		ImGui.Image(
 				self.ctx,
-				self.UI_Data.image_binaries[self.UI_Data.selected_image],
+				self.UI_Data.selected_image_binary,
 				image_size, image_size-1, -- pixel perfect to the list
 				uv_min_x, uv_min_y,
 				uv_max_x, uv_max_y,
