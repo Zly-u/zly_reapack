@@ -125,15 +125,100 @@ local function URL_Openner(URL)
 	os.execute(OS .. " " .. URL)
 end
 
-local function MultLineStringConstructor(max_len, ...)
+local function SplitString(str, delimiter, max_splits)
+	max_splits = max_splits or -1
 
+	local start_index = 1
+	local end_index = #str
+	local result_list = {}
+	local split_count = 1
+
+	for i = 1, #str do
+		if split_count >= max_splits and max_splits ~= -1 then
+			table.insert(result_list,
+				string.sub(str, start_index, -1)
+			)
+			return result_list
+		end
+
+		if str:sub(i, i) == delimiter then
+			end_index = i
+
+			local found_part = string.sub(str, start_index, end_index-1)
+
+			if found_part:sub(1, 1) == " " then
+				found_part = string.sub(found_part, 2, -1)
+			end
+			table.insert(result_list, found_part)
+
+			start_index = i+1
+			split_count = split_count + 1
+		end
+	end
+
+	local found_last_part = string.sub(str, start_index, #str)
+	if found_last_part:sub(1, 1) == " " then
+		found_last_part = string.sub(found_last_part, 2, -1)
+	end
+	table.insert(result_list, found_last_part)
+
+	return result_list
+end
+
+local function TextWrapper(text, max_string_len, bCenter)
+	bCenter = bCenter or false
+	-- Text wrapping
+	local splitted_text = ""
+	local text_lines = { ""}
+	local max_length = 0
+	local final_text = ""
+	if #text > max_string_len then
+		splitted_text = SplitString(text, " ")
+		local char_count = 0
+		for _, word in pairs(splitted_text) do
+			char_count = char_count + #word + 1
+
+			-- wrapping
+			if char_count > max_string_len then
+				if char_count - (#word + 1) > max_length then
+					max_length = char_count - (#word + 1)
+				end
+
+				table.insert(text_lines, "")
+				char_count = #word + 1
+			end
+
+			text_lines[#text_lines] = text_lines[#text_lines]..word..' '
+		end
+	else
+		return text
+	end
+
+	-- Text aligning
+	if bCenter then
+		if #text_lines > 1 then
+			for _, line in pairs(text_lines) do
+				local spaces_to_add = math.ceil((max_length - #line) / 2.0)
+				final_text = final_text..string.rep(' ', spaces_to_add)..line..'\n'
+			end
+		end
+	else
+		for _, line in pairs(text_lines) do
+			final_text = final_text..line..'\n'
+		end
+	end
+
+	return final_text
+end
+
+local function MultiLineStringConstructor(max_len, ...)
 	local strings_array = {...}
 	local compiled_string = ""
 	for index, line in pairs(strings_array) do
 		compiled_string =
-		compiled_string
-				..line
-				..(index ~= #strings_array and "\n" or "")
+			compiled_string
+			..line
+			..(index ~= #strings_array and "\n" or "")
 	end
 	return compiled_string
 end
@@ -153,14 +238,14 @@ local DepsChecker = {
 		for index, lib in pairs(self.libs_to_check) do
 			if not lib.func then
 				self.builded_reapack_deps_list =
-				self.builded_reapack_deps_list
-						..'\t'..lib.filter
-						..(index ~= #self.libs_to_check and '\n' or "")
+					self.builded_reapack_deps_list
+					..'\t'..lib.filter
+					..(index ~= #self.libs_to_check and '\n' or "")
 
 				self.builded_reapack_search_filter =
-				self.builded_reapack_search_filter
-						..lib.filter
-						..(index ~= #self.libs_to_check and " OR " or "")
+					self.builded_reapack_search_filter
+					..lib.filter
+					..(index ~= #self.libs_to_check and " OR " or "")
 			end
 		end
 
@@ -172,21 +257,21 @@ local DepsChecker = {
 		-- I didn't wanted to write in [[str]] for a multiline string cuz it sucks to read in code
 		-- and I didn't wanted to make one long ass single line string with '\n' at random places
 		-- this way i can see the dimensions of the text for a proper formating
-		local error_msg = MultLineStringConstructor(nil,
-				"Please install next Packages through ReaPack",
-				"In Order for the script to work:\n",
-				self.builded_reapack_deps_list,
-				"\nAfter closing this window ReaPack's Package Browser",
-				"will open with the dependencies you need!"
+		local error_msg = MultiLineStringConstructor(-1,
+			"Please install next Packages through ReaPack",
+			"In Order for the script to work:\n",
+			self.builded_reapack_deps_list,
+			"\nAfter closing this window ReaPack's Package Browser",
+			"will open with the dependencies you need!"
 		)
 
 		reaper.MB(error_msg, "Error", 0)
 
 		if not reaper.ReaPack_BrowsePackages then
-			local reapack_error = MultLineStringConstructor(
-					"Someone told me you don't have ReaPack to get the deps from...",
-					"After closing this window I will open the Official ReaPack website",
-					"\"https://reapack.com/\" for you to download it from :)"
+			local reapack_error = MultiLineStringConstructor(-1,
+				"Someone told me you don't have ReaPack to get the deps from...",
+				"After closing this window I will open the Official ReaPack website",
+				"\"https://reapack.com/\" for you to download it from :)"
 			)
 			reaper.MB(reapack_error, "What the hell...", 0)
 			URL_Openner("https://reapack.com/")
@@ -1028,7 +1113,7 @@ function GUI:TAB_VFX()
 		--------------------------------------------------------------------------------------------------------------------
 
 		if ImGui_ButtonWithHint(self.ctx, "Chroma-key", 0.5,
-			MultLineStringConstructor(
+			MultiLineStringConstructor(-1,
 				"A very inmportant effect that needs to be placed at the end of the chain of those effects that are listed above.",
 				"",
 				"It's done in such way due to Reaper's limitations/absurd control over the video elements in the rendering, so this is a workaround for compositing alike methods of working with videos."
@@ -1090,7 +1175,7 @@ function GUI:TAB_Helpers()
 		--------------------------------------------------------------------------------------------------------------------
 
 		if ImGui_ButtonWithHint(self.ctx, "Create Pooled", 0.5,
-			MultLineStringConstructor(
+			MultiLineStringConstructor(-1,
 				"Creates Pooled Automation Items in a dummy track.",
 				"",
 				"So every created Automation Item is mimicking each other."
@@ -1102,7 +1187,7 @@ function GUI:TAB_Helpers()
 		end
 
 		if ImGui_ButtonWithHint(self.ctx, "Create Non-pooled", 0.5,
-			MultLineStringConstructor(
+			MultiLineStringConstructor(-1,
 				"Creates Non-pooled Automation Items in a dummy track.",
 				"",
 				"So each envelope is unique."
@@ -1185,48 +1270,39 @@ function GUI:TAB_FAQ()
 		| reaper.ImGui_WindowFlags_NoResize()
 		| ImGui.WindowFlags_AlwaysVerticalScrollbar()
 	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, fla) then
-		ImGui.BeginGroup(self.ctx)
 		--------------------------------------------------------------------------------------------------------------------
 		ImGui.SeparatorText(self.ctx, "Why Chroma Key thing?")
 		--------------------------------------------------------------------------------------------------------------------
 
-		ImGui.Text(self.ctx, ""
-			.."Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.\n"
-			.."\n"
-			.."Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key\n"
-			.."It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.\n"
-			.."\n"
-			.."After the Chroma-Key is aplied everything else behind our video will appear untouched.\n"
-			.."\n"
+		ImGui.Text(self.ctx,
+			TextWrapper(
+				"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do."
+				..""
+				.."Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key"
+				.."It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with."
+				..""
+				.."After the Chroma-Key is aplied everything else behind our video will appear untouched."
+				.."",
+				#("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+					true
+			)
 		)
 
 
-		local faq_1 = MultLineStringConstructor(
-			"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.",
-			"",
-			"Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key",
-			"It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.",
-			"",
-			"After the Chroma-Key is aplied everything else behind our video will appear untouched.",
-			""
-		)
 
-		local pad_x, pad_y		= ImGui.GetStyleVar(self.ctx, ImGui.StyleVar_FramePadding())
-		local avail_x, avail_y	= ImGui.GetContentRegionAvail(self.ctx)
-
-		--ImGui.SetNextItemWidth(self.ctx, 100)
-		ImGui.PushItemWidth(self.ctx, 100)
-		ImGui.InputTextMultiline(
-			self.ctx, "FAQ_1",
-			faq_1,
-			-FLT_MIN, ImGui.GetTextLineHeight(self.ctx) * 8,
-			0
-			--| ImGui.InputTextFlags_ReadOnly()
-			| ImGui.InputTextFlags_NoHorizontalScroll()
-		)
-		ImGui.PopItemWidth(self.ctx)
-
-		ImGui.EndGroup(self.ctx)
+		--local pad_x, pad_y		= ImGui.GetStyleVar(self.ctx, ImGui.StyleVar_FramePadding())
+		--local avail_x, avail_y	= ImGui.GetContentRegionAvail(self.ctx)
+		--
+		----ImGui.SetNextItemWidth(self.ctx, 100)
+		--ImGui.PushItemWidth(self.ctx, 100)
+		--ImGui.InputTextMultiline(
+		--	self.ctx, "FAQ_1",
+		--	faq_1,
+		--	-FLT_MIN, ImGui.GetTextLineHeight(self.ctx) * 14,
+		--	0
+		--	| ImGui.InputTextFlags_ReadOnly()
+		--)
+		--ImGui.PopItemWidth(self.ctx)
 		ImGui.EndChild(self.ctx)
 	end
 end
