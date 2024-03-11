@@ -550,6 +550,7 @@ local VAF = {
 	params = {
 		volumet_to_opcaity = false
 		add_flips = true
+		flip_only_on_pitch_change = false
 	}
 	--]]
 	ApplyPresset = function(self, preset_index, params)
@@ -570,13 +571,8 @@ local VAF = {
 		local env_opacity		= nil
 
 		local flips_check = found_preset(0, nil)
-
-		-- TODO: Prepare envelopes
-
-		-- TODO:Add pressets
-
+		
 		-- Add Flipper
-
 		if params.add_flips then
 			local fx_flip = self:AddVFX(item_track, "VAF: Flipper", "Flipper.eel")
 			env_horiz_flip = flips_check.h ~= nil and reaper.GetFXEnvelope(item_track, fx_flip, 0, true) or nil
@@ -588,8 +584,7 @@ local VAF = {
 			local fx_opacity = self:AddVFX(item_track, "VAF: Opacity", "Opacity.eel")
 			env_opacity = reaper.GetFXEnvelope(item_track, fx_opacity, 0, true)
 		end
-
-
+		
 		-- Finilizing with Chroma-key
 		local _ = self:AddVFX(item_track, "VAF: Chroma-key", "Chroma.eel")
 		--------------------------------------------------------------------------------
@@ -602,14 +597,28 @@ local VAF = {
 			opacity = {},
 		}
 
+		local flip_index = 0
+		local prev_pitch = nil
 		for index = 0, items_count - 1 do
 			local item		= reaper.GetSelectedMediaItem(0, index)
 			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
 			local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-			local item_vol  = reaper.GetMediaItemInfo_Value(item, "D_VOL")
-
-			local evaluated_flips = found_preset(index, item)
-
+			
+			-- Flip only upon pitch change
+			if params.flip_only_on_pitch_change then
+				local item_take  = reaper.GetActiveTake(item)
+				local take_pitch = reaper.GetMediaItemTakeInfo_Value(item_take, "D_PITCH")
+				
+				if take_pitch ~= prev_pitch then
+					if prev_pitch ~= nil then
+						flip_index = flip_index + 1
+					end
+					prev_pitch = take_pitch
+				end
+			end
+			
+			local evaluated_flips = found_preset(params.flip_only_on_pitch_change and flip_index or index, item)
+			
 			if env_horiz_flip then
 				local flip = math.max(evaluated_flips.h, 0)+69
 				local ai_i = reaper.InsertAutomationItem(
@@ -631,6 +640,7 @@ local VAF = {
 			end
 
 			if env_opacity then
+				local item_vol  = reaper.GetMediaItemInfo_Value(item, "D_VOL")
 				local vol_id = math.floor(item_vol*255)
 				local ai_i = reaper.InsertAutomationItem(
 					env_opacity,
@@ -970,8 +980,9 @@ function GUI:TAB_Flipper()
 
 	if ImGui.Button(self.ctx, "Apply") then
 		local params = {
-			volume_to_opacity	= self.UI_Data.CHB_volume_to_opacity,
-			add_flips			= self.UI_Data.CHB_add_flips
+			volume_to_opacity			= self.UI_Data.CHB_volume_to_opacity,
+			add_flips					= self.UI_Data.CHB_add_flips,
+			flip_only_on_pitch_change	= self.UI_Data.CHB_flip_only_on_pitch_change
 		}
 		UndoWrap("[VAF] Apply Presset", function()
 			VAF:ApplyPresset(self.UI_Data.selected_preset + 1, params)
@@ -1312,19 +1323,6 @@ function GUI:TAB_FAQ()
 			)
 		)
 		
-		--local pad_x, pad_y		= ImGui.GetStyleVar(self.ctx, ImGui.StyleVar_FramePadding())
-		--local avail_x, avail_y	= ImGui.GetContentRegionAvail(self.ctx)
-		--
-		----ImGui.SetNextItemWidth(self.ctx, 100)
-		--ImGui.PushItemWidth(self.ctx, 100)
-		--ImGui.InputTextMultiline(
-		--	self.ctx, "FAQ_1",
-		--	faq_1,
-		--	-FLT_MIN, ImGui.GetTextLineHeight(self.ctx) * 14,
-		--	0
-		--	| ImGui.InputTextFlags_ReadOnly()
-		--)
-		--ImGui.PopItemWidth(self.ctx)
 		ImGui.EndChild(self.ctx)
 	end
 end
@@ -1361,6 +1359,10 @@ function GUI:DrawUI()
 				{
 					text = "GitHub",
 					url = "https://github.com/Zly-u",
+				},
+				{
+					text = "Support",
+					url = "https://boosty.to/zly",
 				}
 			})
 		end
