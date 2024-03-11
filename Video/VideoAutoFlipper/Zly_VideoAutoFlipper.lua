@@ -590,13 +590,7 @@ local VAF = {
 		--------------------------------------------------------------------------------
 		--------------------------------------------------------------------------------
 		--------------------------------------------------------------------------------
-
-		local pooled_envelopes = {
-			flips_h = {},
-			flips_v = {},
-			opacity = {},
-		}
-
+		
 		local flip_index = 0
 		local prev_pitch = nil
 		for index = 0, items_count - 1 do
@@ -620,23 +614,35 @@ local VAF = {
 			local evaluated_flips = found_preset(params.flip_only_on_pitch_change and flip_index or index, item)
 			
 			if env_horiz_flip then
-				local flip = math.max(evaluated_flips.h, 0)+69
 				local ai_i = reaper.InsertAutomationItem(
 					env_horiz_flip,
-					flip,
+					math.max(evaluated_flips.h, 0)+69,
 					item_pos, item_len
 				)
-				pooled_envelopes.flips_h[flip] = ai_i
+				
+				reaper.InsertEnvelopePointEx(
+					env_horiz_flip,
+					ai_i,
+					item_pos, math.max(evaluated_flips.h, 0),
+					1, 1,
+					false, false
+				)
 			end
 
 			if env_vert_flip then
-				local flip = math.max(evaluated_flips.v, 0)+69
 				local ai_i = reaper.InsertAutomationItem(
 					env_vert_flip,
-					flip,
+					math.max(evaluated_flips.v, 0)+69,
 					item_pos, item_len
 				)
-				pooled_envelopes.flips_v[flip] = ai_i
+				
+				reaper.InsertEnvelopePointEx(
+					env_vert_flip,
+					ai_i,
+					item_pos, math.max(evaluated_flips.v, 0),
+					1, 1,
+					false, false
+				)
 			end
 
 			if env_opacity then
@@ -647,77 +653,17 @@ local VAF = {
 					vol_id,
 					item_pos, item_len
 				)
-				pooled_envelopes.opacity[vol_id] = ai_i
-			end
-		end
-		
-		flip_index = 0
-		prev_pitch = nil
-		-- Process flippings
-		for index = 0, items_count-1 do
-			local item		= reaper.GetSelectedMediaItem(0, index)
-			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-			
-			-- Flip only upon pitch change
-			if params.flip_only_on_pitch_change then
-				local item_take  = reaper.GetActiveTake(item)
-				local take_pitch = reaper.GetMediaItemTakeInfo_Value(item_take, "D_PITCH")
 				
-				if take_pitch ~= prev_pitch then
-					if prev_pitch ~= nil then
-						flip_index = flip_index + 1
-					end
-					prev_pitch = take_pitch
-				end
-			end
-			
-			local evaluated_flips = found_preset(params.flip_only_on_pitch_change and flip_index or index, item)
-
-			if env_horiz_flip then
-				reaper.InsertEnvelopePointEx(
-					-- env
-					env_horiz_flip,
-					-- autoitem_idx
-					pooled_envelopes.flips_h[math.max(evaluated_flips.h, 0)+69] or -1,
-					-- pos, val
-					item_pos, math.max(evaluated_flips.h, 0),
-					-- shape, tension
-					1, 1,
-					-- isSelected, noSort
-					false, false
-				)
-			end
-
-			if env_vert_flip then
-				reaper.InsertEnvelopePointEx(
-					-- env
-					env_vert_flip,
-					-- autoitem_idx
-					pooled_envelopes.flips_v[math.max(evaluated_flips.v, 0)+69] or -1,
-					-- pos, val
-					item_pos, math.max(evaluated_flips.v, 0),
-					-- shape, tension
-					1, 1,
-					-- isSelected, noSort
-					false, false
-				)
-			end
-
-			-- Volume -> Opacity
-			if env_opacity then
-				local item_vol	= reaper.GetMediaItemInfo_Value(item, "D_VOL")
-
 				reaper.InsertEnvelopePointEx(
 					env_opacity,
-					pooled_envelopes.opacity[math.floor(item_vol*255)] or -1,
+					ai_i,
 					item_pos, item_vol,
 					1, 1,
 					false, false
 				)
 			end
 		end
-
-
+		
 		--if env_horiz_flip then
 		--	reaper.Envelope_SortPoints(env_horiz_flip)
 		--end
