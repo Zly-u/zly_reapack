@@ -650,13 +650,28 @@ local VAF = {
 				pooled_envelopes.opacity[vol_id] = ai_i
 			end
 		end
-
+		
+		flip_index = 0
+		prev_pitch = nil
 		-- Process flippings
 		for index = 0, items_count-1 do
 			local item		= reaper.GetSelectedMediaItem(0, index)
 			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-
-			local evaluated_flips = found_preset(index, item)
+			
+			-- Flip only upon pitch change
+			if params.flip_only_on_pitch_change then
+				local item_take  = reaper.GetActiveTake(item)
+				local take_pitch = reaper.GetMediaItemTakeInfo_Value(item_take, "D_PITCH")
+				
+				if take_pitch ~= prev_pitch then
+					if prev_pitch ~= nil then
+						flip_index = flip_index + 1
+					end
+					prev_pitch = take_pitch
+				end
+			end
+			
+			local evaluated_flips = found_preset(params.flip_only_on_pitch_change and flip_index or index, item)
 
 			if env_horiz_flip then
 				reaper.InsertEnvelopePointEx(
@@ -957,10 +972,10 @@ function GUI:TAB_Flipper()
 	end
 
 	self.UI_Data.CHB_add_aspect_fixer_click, self.UI_Data.CHB_add_aspect_fixer =
-	ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer.", self.UI_Data.CHB_add_aspect_fixer)
+	ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer", self.UI_Data.CHB_add_aspect_fixer)
 
 	self.UI_Data.CHB_add_flips_click, self.UI_Data.CHB_add_flips =
-	ImGui.Checkbox(self.ctx, "Add Flips.", self.UI_Data.CHB_add_flips)
+	ImGui.Checkbox(self.ctx, "Add Flips", self.UI_Data.CHB_add_flips)
 
 	self.UI_Data.CHB_volume_to_opacity_click, self.UI_Data.CHB_volume_to_opacity =
 	ImGui.Checkbox(self.ctx, "Volume -> Opacity", self.UI_Data.CHB_volume_to_opacity)
