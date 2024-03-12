@@ -573,90 +573,82 @@ local VAF = {
 			env_horiz_flip = flips_check.h ~= nil and reaper.GetFXEnvelope(item_track, fx_flip, 0, true) or nil
 			env_vert_flip  = flips_check.v ~= nil and reaper.GetFXEnvelope(item_track, fx_flip, 1, true) or nil
 		end
-
+		
+		-- Finilizing with Chroma-key
+		local _ = self:AddVFX(item_track, "VAF: Chroma-key", "Chroma.eel")
+		
 		-- Add Opacity
 		if params.volume_to_opacity then
 			local fx_opacity = self:AddVFX(item_track, "VAF: Opacity", "Opacity.eel")
 			env_opacity = reaper.GetFXEnvelope(item_track, fx_opacity, 0, true)
 		end
-		
-		-- Finilizing with Chroma-key
-		local _ = self:AddVFX(item_track, "VAF: Chroma-key", "Chroma.eel")
 		--------------------------------------------------------------------------------
 		--------------------------------------------------------------------------------
 		--------------------------------------------------------------------------------
 		
-		local flip_index = 0
+		local prev_ai = nil
+		local process_event = function(env, env_id, value, item_take, item_pos, item_len)
+			if not env then return end
+			
+			local ai_i = -1
+			
+			local _, take_name = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
+			if take_name == "VAF_SILENT_FILL" then
+				local env_len = reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", 0, false)
+				reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", env_len+item_len, true)
+				goto fuck_off
+			end
+
+			ai_i = reaper.InsertAutomationItem(
+				env,
+				env_id,
+				item_pos, item_len
+			)
+
+			prev_ai = ai_i
+
+			reaper.InsertEnvelopePointEx(
+				env,
+				ai_i,
+				item_pos, value,
+				1, 1,
+				false, false
+			)
+			
+			::fuck_off::
+		end
+		
+		local flip_index = -1
 		local prev_pitch = nil
 		for index = 0, items_count - 1 do
 			local item		= reaper.GetSelectedMediaItem(0, index)
+			local item_take  = reaper.GetActiveTake(item)
 			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
 			local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
 			
 			-- Flip only upon pitch change
-			if params.flip_only_on_pitch_change then
-				local item_take  = reaper.GetActiveTake(item)
-				local take_pitch = reaper.GetMediaItemTakeInfo_Value(item_take, "D_PITCH")
-				
-				if take_pitch ~= prev_pitch then
-					if prev_pitch ~= nil then
-						flip_index = flip_index + 1
+			local _, take_name = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
+			if take_name ~= "VAF_SILENT_FILL" then
+				if params.flip_only_on_pitch_change then
+					local take_pitch = reaper.GetMediaItemTakeInfo_Value(item_take, "D_PITCH")
+					
+					if take_pitch ~= prev_pitch then
+						if prev_pitch ~= nil then
+							flip_index = flip_index + 1
+						end
+						prev_pitch = take_pitch
 					end
-					prev_pitch = take_pitch
+				else
+					flip_index = flip_index + 1
 				end
 			end
 			
-			local evaluated_flips = found_preset(params.flip_only_on_pitch_change and flip_index or index, item)
+			local evaluated_flips = found_preset(flip_index, item)
 			
-			if env_horiz_flip then
-				local ai_i = reaper.InsertAutomationItem(
-					env_horiz_flip,
-					math.max(evaluated_flips.h, 0)+69,
-					item_pos, item_len
-				)
-				
-				reaper.InsertEnvelopePointEx(
-					env_horiz_flip,
-					ai_i,
-					item_pos, math.max(evaluated_flips.h, 0),
-					1, 1,
-					false, false
-				)
-			end
-
-			if env_vert_flip then
-				local ai_i = reaper.InsertAutomationItem(
-					env_vert_flip,
-					math.max(evaluated_flips.v, 0)+69,
-					item_pos, item_len
-				)
-				
-				reaper.InsertEnvelopePointEx(
-					env_vert_flip,
-					ai_i,
-					item_pos, math.max(evaluated_flips.v, 0),
-					1, 1,
-					false, false
-				)
-			end
-
-			if env_opacity then
-				local item_vol  = reaper.GetMediaItemInfo_Value(item, "D_VOL")
-				local vol_id = math.floor(item_vol*255)
-				local ai_i = reaper.InsertAutomationItem(
-					env_opacity,
-					vol_id,
-					item_pos, item_len
-				)
-				
-				reaper.InsertEnvelopePointEx(
-					env_opacity,
-					ai_i,
-					item_pos, item_vol,
-					1, 1,
-					false, false
-				)
-			end
+			process_event(env_horiz_flip,	math.max(evaluated_flips.h or 0, 0)+69, math.max(evaluated_flips.h or 0, 0), item_take, item_pos, item_len)
+			process_event(env_vert_flip,	math.max(evaluated_flips.v or 0, 0)+69, math.max(evaluated_flips.v or 0, 0), item_take, item_pos, item_len)
+			local item_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
+			process_event(env_opacity,		math.floor(item_vol * 255), item_vol, item_take, item_pos, item_len)
 		end
 		
 		--if env_horiz_flip then
@@ -1180,7 +1172,36 @@ function GUI:TAB_Helpers()
 				reaper.UpdateArrange()
 			end)
 		end
-
+		
+		if ImGui_ButtonWithHint(self.ctx, "Silent Extend to Next", 0.5, "") then
+			UndoWrap("[VAF] Silent Fill to Next", function()
+				local item_count = reaper.CountSelectedMediaItems()
+				if item_count == 0 then return end
+				
+				local prev_split = nil
+				for id = 0, item_count - 2 do
+					local item		= reaper.GetSelectedMediaItem(0, id)
+					local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+					
+					local item_start		= reaper.GetMediaItemInfo_Value(item,		"D_POSITION")
+					local item_len			= reaper.GetMediaItemInfo_Value(item,		"D_LENGTH")
+					local next_item_start	= reaper.GetMediaItemInfo_Value(next_item,  "D_POSITION")
+					local target_length		= next_item_start - item_start
+					
+					reaper.SetMediaItemLength(item, target_length, false)
+					prev_split = reaper.SplitMediaItem(item, item_start+item_len)
+					if prev_split then
+						reaper.SetMediaItemInfo_Value(prev_split, "D_VOL", 0)
+						reaper.GetSetMediaItemTakeInfo_String(reaper.GetActiveTake(prev_split), "P_NAME", "VAF_SILENT_FILL", true)
+						item_count = item_count + 1
+						id = id + 1
+					end
+				end
+				
+				reaper.UpdateArrange()
+			end)
+		end
+		
 		if ImGui_ButtonWithHint(self.ctx, "Stretch to Next", 0.5, "") then
 			UndoWrap("[VAF] Stretch to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
@@ -1210,12 +1231,6 @@ function GUI:TAB_Helpers()
 				end
 
 				reaper.UpdateArrange()
-			end)
-		end
-
-		if ImGui_ButtonWithHint(self.ctx, "Silent Fill to Next", 0.5, "") then
-			UndoWrap("[VAF] Silent Fill to Next", function()
-
 			end)
 		end
 
