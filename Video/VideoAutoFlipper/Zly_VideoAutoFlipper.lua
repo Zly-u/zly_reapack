@@ -505,6 +505,154 @@ local function hsl2rgb(H, S, L, reaper_color)
 	return outColor
 end
 
+--[[===================================================]]--
+--[[===================================================]]--
+--[[===================================================]]--
+
+local GUI = {
+	version = "1.0.0",
+	name	= "Video Auto-Flipper",
+	
+	timer = 0.0,
+	ctx = nil, -- ImGui context.
+	
+	UI_Data = {
+		preview_index = 0,
+		--------------------------------------------
+		image_names		= {},
+		image_binaries	= {},
+		selected_image_binary = nil,
+		--------------------------------------------
+		selected_preset		  = 0,
+		selected_preset_click = 0,
+		presets_string = "",
+		
+		--------------------------------------------
+		--------------------------------------------
+		
+		CHB_add_aspect_fixer		= true,
+		CHB_add_aspect_fixer_click	= true,
+		--------------------------------------------
+		CHB_add_cropper			= true,
+		CHB_add_cropper_click	= true,
+		--------------------------------------------
+		CHB_add_flips		= true,
+		CHB_add_flips_click = false,
+		--------------------------------------------
+		CHB_volume_to_opacity		= true,
+		CHB_volume_to_opacity_click = false,
+		
+		--------------------------------------------
+		--------------------------------------------
+		
+		CHB_flip_only_on_pitch_change		= false,
+		CHB_flip_only_on_pitch_change_click = false,
+		
+		--------------------------------------------
+		--------------------------------------------
+		
+		flip_count = 0,
+		amount_of_items_to_flip = 0,
+	},
+	
+	-------------------------------------------------------------------------------------------------------------------
+	
+	window_flags = ImGui.WindowFlags_None()
+		| ImGui.WindowFlags_NoDocking()
+		| ImGui.WindowFlags_NoResize()
+		| ImGui.WindowFlags_NoCollapse()
+		--| ImGui.WindowFlags_NoSavedSettings()
+		| ImGui.WindowFlags_AlwaysAutoResize()
+	, -- this lil fella is here so i can add and comment out flags at the end with ease, okay?
+	
+	global_style_vars = {
+		{ImGui.StyleVar_WindowTitleAlign(), {0.5, 0.5}},
+		{ImGui.StyleVar_SeparatorTextAlign(), {0.5, 0.5}},
+		{ImGui.StyleVar_FrameBorderSize(), {1}},
+	},
+	
+	-------------------------------------------------------------------------------------------------------------------
+	-------------------------------------------------------------------------------------------------------------------
+	-------------------------------------------------------------------------------------------------------------------
+	
+	-- Implementable Function
+	Init = function(self) end,
+	
+	-- Implementable Function
+	UpdateParams = function(self) end,
+	
+	-------------------------------------------------------------------------------------------------------------------
+	
+	StyleVar_Processor = function(self)
+		for _, style_var in pairs(self.global_style_vars) do
+			ImGui.PushStyleVar(self.ctx, style_var[1], table.unpack(style_var[2]))
+		end
+	end,
+	
+	-- Most likely won't change ever.
+	LoopUI = function(self)
+		self:StyleVar_Processor()
+		
+		----
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_WindowBg(),           0x404040FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_FrameBg(),            0x303030FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_TitleBgActive(),      0x1E1E1EFF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_CheckMark(),          0x40C040FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_Button(),             0x404040FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_ButtonHovered(),      0x545454FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_ButtonActive(),       0x6363A5FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_Tab(),                0x303030FF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_TabHovered(),         0x424242CC)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_TabActive(),          0x6A6A6AFF)
+		--ImGui.PushStyleColor(self.ctx, ImGui.Col_TabUnfocusedActive(), 0x303030FF)
+		----
+		
+		
+		ImGui.SetNextWindowSize(self.ctx, 288, 375, ImGui.Cond_Always())
+		
+		local window_visible, window_open = select(1, ImGui.Begin(self.ctx, self.name.." "..self.version, true, self.window_flags))
+		
+		if window_visible then
+			self:UpdateParams()
+			self:DrawUI(self.ctx)
+			
+			ImGui.End(self.ctx)
+		end
+		
+		--ImGui.PopStyleColor(self.ctx, 11)
+		ImGui.PopStyleVar(self.ctx, #self.global_style_vars)
+		
+		-- Continue looping itself
+		if window_open then
+			reaper.defer(self:LoopUI_Wrapper())
+		end
+	end,
+	
+	-- Wrappy wrap
+	LoopUI_Wrapper = function(self)
+		return function() self:LoopUI() end
+	end,
+	
+	-- Overridable
+	SetupWindow = function(self)
+		self.ctx = ImGui.CreateContext(self.name)
+		
+		self:Init()
+		
+		ImGui.SetConfigVar(self.ctx, ImGui.ConfigVar_WindowsMoveFromTitleBarOnly(),	1)
+		ImGui.SetConfigVar(self.ctx, ImGui.ConfigVar_WindowsResizeFromEdges(),		1)
+		
+		reaper.defer(self:LoopUI_Wrapper())
+	end,
+	
+	-------------------------------------------------------------------------------------------------------------------
+	
+	DrawUI = function(self) end, -- Implementable Function
+	
+}
+
+-----------------------------------------------------------------------------------------------------------------------
+
 local VAF = {
 	VP_Presets = {},
 	
@@ -649,6 +797,8 @@ local VAF = {
 			process_event(env_vert_flip,	math.max(evaluated_flips.v or 0, 0)+69, math.max(evaluated_flips.v or 0, 0), item_take, item_pos, item_len)
 			local item_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
 			process_event(env_opacity,		math.floor(item_vol * 255), item_vol, item_take, item_pos, item_len)
+			
+			GUI.UI_Data.flip_count = GUI.UI_Data.flip_count + 1
 		end
 		
 		--if env_horiz_flip then
@@ -668,126 +818,6 @@ local VAF = {
 --[[===================================================]]--
 --[[===================================================]]--
 
-local GUI = {
-	version = "1.0.0",
-	name	= "Video Auto-Flipper",
-
-	timer = 0.0,
-	ctx = nil, -- ImGui context.
-
-	UI_Data = {
-		preview_index = 0,
-		--------------------------------------------
-		image_names		= {},
-		image_binaries	= {},
-		selected_image_binary = nil,
-		--------------------------------------------
-		selected_preset		  = 0,
-		selected_preset_click = 0,
-		presets_string = "",
-
-		--------------------------------------------
-		--------------------------------------------
-
-		CHB_add_aspect_fixer		= true,
-		CHB_add_aspect_fixer_click	= true,
-		--------------------------------------------
-		CHB_add_cropper			= true,
-		CHB_add_cropper_click	= true,
-		--------------------------------------------
-		CHB_add_flips		= true,
-		CHB_add_flips_click = false,
-		--------------------------------------------
-		CHB_volume_to_opacity		= true,
-		CHB_volume_to_opacity_click = false,
-
-		--------------------------------------------
-		--------------------------------------------
-
-		CHB_flip_only_on_pitch_change		= false,
-		CHB_flip_only_on_pitch_change_click = false,
-	},
-
-	-------------------------------------------------------------------------------------------------------------------
-
-	window_flags = ImGui.WindowFlags_None()
-		| ImGui.WindowFlags_NoDocking()
-		| ImGui.WindowFlags_NoResize()
-		| ImGui.WindowFlags_NoCollapse()
-		--| ImGui.WindowFlags_NoSavedSettings()
-		| ImGui.WindowFlags_AlwaysAutoResize()
-	, -- this lil fella is here so i can add and comment out flags at the end with ease, okay?
-
-	global_style_vars = {
-		{ImGui.StyleVar_WindowTitleAlign(), {0.5, 0.5}},
-		{ImGui.StyleVar_SeparatorTextAlign(), {0.5, 0.5}},
-	},
-
-	-------------------------------------------------------------------------------------------------------------------
-	-------------------------------------------------------------------------------------------------------------------
-	-------------------------------------------------------------------------------------------------------------------
-
-	-- Implementable Function
-	Init = function(self) end,
-
-	-- Implementable Function
-	UpdateParams = function(self) end,
-
-	-------------------------------------------------------------------------------------------------------------------
-
-	StyleVar_Processor = function(self)
-		for _, style_var in pairs(self.global_style_vars) do
-			ImGui.PushStyleVar(self.ctx, style_var[1], table.unpack(style_var[2]))
-		end
-	end,
-
-	-- Most likely won't change ever.
-	LoopUI = function(self)
-		self:StyleVar_Processor()
-
-		ImGui.SetNextWindowSize(self.ctx, 288, 375, ImGui.Cond_Always())
-
-		local window_visible, window_open = select(1, ImGui.Begin(self.ctx, self.name.." "..self.version, true, self.window_flags))
-
-		if window_visible then
-			self:UpdateParams()
-			self:DrawUI(self.ctx)
-
-			ImGui.End(self.ctx)
-		end
-
-		ImGui.PopStyleVar(self.ctx, #self.global_style_vars)
-
-		-- Continue looping itself
-		if window_open then
-			reaper.defer(self:LoopUI_Wrapper())
-		end
-	end,
-
-	-- Wrappy wrap
-	LoopUI_Wrapper = function(self)
-		return function() self:LoopUI() end
-	end,
-
-	-- Overridable
-	SetupWindow = function(self)
-		self.ctx = ImGui.CreateContext(self.name)
-
-		self:Init()
-
-		ImGui.SetConfigVar(self.ctx, ImGui.ConfigVar_WindowsMoveFromTitleBarOnly(),	1)
-		ImGui.SetConfigVar(self.ctx, ImGui.ConfigVar_WindowsResizeFromEdges(),		1)
-
-		reaper.defer(self:LoopUI_Wrapper())
-	end,
-
-	-------------------------------------------------------------------------------------------------------------------
-
-	DrawUI = function(self) end, -- Implementable Function
-
-}
-
------------------------------------------------------------------------------------------------------------------------
 
 function GUI:Init()
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
@@ -859,6 +889,12 @@ function GUI:UpdateParams()
 	if self.timer % 11 == 0 then
 		self.UI_Data.preview_index = self.UI_Data.preview_index + 1
 	end
+	
+	local cur_selected_items = reaper.CountSelectedMediaItems(0)
+	if cur_selected_items ~= self.UI_Data.amount_of_items_to_flip then
+		self.UI_Data.amount_of_items_to_flip = cur_selected_items
+		self.UI_Data.flip_count = 0
+	end
 end
 
 
@@ -925,6 +961,7 @@ function GUI:TAB_Flipper()
 			flip_only_on_pitch_change	= self.UI_Data.CHB_flip_only_on_pitch_change
 		}
 		UndoWrap("[VAF] Apply Presset", function()
+			self.UI_Data.flip_count = 0
 			VAF:ApplyPresset(self.UI_Data.selected_preset + 1, params)
 		end)
 	end
@@ -936,8 +973,12 @@ function GUI:TAB_Flipper()
 		ImGui.PushStyleVar(self.ctx, ImGui.StyleVar_FrameBorderSize(), 1)
 
 		ImGui.PushItemWidth(self.ctx, -FLT_MIN)
-		ImGui.ProgressBar(self.ctx, 0.0, 0, 0, ("%.1f/%d"))
-
+		
+		local progress = self.UI_Data.flip_count ~= 0 and self.UI_Data.flip_count/self.UI_Data.amount_of_items_to_flip or 0.0
+		ImGui.ProgressBar(self.ctx, progress, 0, 0, ("%d/%d"):format(self.UI_Data.flip_count, self.UI_Data.amount_of_items_to_flip))
+		ImGui.SameLine(self.ctx)
+		ImGui.Text(self.ctx, ("%%%03d"):format(math.floor(progress * 100.0)))
+		
 		ImGui.PopStyleVar(self.ctx)
 		ImGui.PopStyleColor(self.ctx)
 	end
