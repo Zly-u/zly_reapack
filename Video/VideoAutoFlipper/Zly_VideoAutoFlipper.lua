@@ -1286,72 +1286,66 @@ function GUI:TAB_FAQ()
 		| ImGui.WindowFlags_AlwaysVerticalScrollbar()
 	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, fla) then
 		local max_line_len = 36
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.PushStyleColor(self.ctx, ImGui.Col_Text(), hsl2rgb(60, 0.8, 0.8))
-		ImGui.SeparatorText(self.ctx, "Why Chroma Key thing?")
-		ImGui.PopStyleColor(self.ctx)
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.Text(self.ctx,
-			TextWrapper(
-				"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.",
-				max_line_len,
-				true
+
+		if ImGui.CollapsingHeader(self.ctx, "Why Chroma Key thing?") then
+			ImGui.Text(self.ctx,
+					TextWrapper(
+							"Okay... This is a weird workaround I figured in order to do what I wanted this FX chain to do.",
+							max_line_len,
+							true
+					)
 			)
-		)
-		ImGui.Text(self.ctx,
-			TextWrapper(
-				"Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key",
-				max_line_len,
-				true
+			ImGui.Text(self.ctx,
+					TextWrapper(
+							"Every effect of VAF effect essentially fills the BG of the source with either Blue or Green for Chroma Key",
+							max_line_len,
+							true
+					)
 			)
-		)
-		ImGui.Text(self.ctx,
-			TextWrapper(
-					"It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.",
-				max_line_len,
-				true
+			ImGui.Text(self.ctx,
+					TextWrapper(
+							"It essentially allows you to do anything you want with the source without touching anything that is behind the video we are working with.",
+							max_line_len,
+							true
+					)
 			)
-		)
-		ImGui.Text(self.ctx,
-			TextWrapper(
-				"After the Chroma-Key is aplied everything else behind our video will appear untouched.",
-				max_line_len,
-				true
+			ImGui.Text(self.ctx,
+					TextWrapper(
+							"After the Chroma-Key is aplied everything else behind our video will appear untouched.",
+							max_line_len,
+							true
+					)
 			)
-		)
-		ImGui.Text(self.ctx,
-			TextWrapper(
-				"Without this the FXs would be applied to the videos behind our current video we are working with.",
-				max_line_len,
-				true
+			ImGui.Text(self.ctx,
+					TextWrapper(
+							"Without this the FXs would be applied to the videos behind our current video we are working with.",
+							max_line_len,
+							true
+					)
 			)
-		)
+		end
 		
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.PushStyleColor(self.ctx, ImGui.Col_Text(), hsl2rgb(60, 0.8, 0.8))
-		ImGui.SeparatorText(self.ctx, "Helpers: Automation Items?")
-		ImGui.PopStyleColor(self.ctx)
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.Text(self.ctx,
-			TextWrapper(
-				"They are handy for creating envelopes to be used for each Media Item, like for animations.",
-				max_line_len,
-				true
+
+		if ImGui.CollapsingHeader(self.ctx, "Helpers: Automation Items?") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"They are handy for creating envelopes to be used for each Media Item, like for animations.",
+					max_line_len,
+					true
+				)
 			)
-		)
+		end
 		
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.PushStyleColor(self.ctx, ImGui.Col_Text(), hsl2rgb(60, 0.8, 0.8))
-		ImGui.SeparatorText(self.ctx, "Helpers: Silent Extend to Next?")
-		ImGui.PopStyleColor(self.ctx)
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.Text(self.ctx,
-			TextWrapper(
-				"Silent Fills created by this script won't interfere with the flipping generation, I have made a sure of that.",
-				max_line_len,
-				true
+
+		if ImGui.CollapsingHeader(self.ctx, "Helpers: Silent Extend to Next?") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"Silent Fills created by this script won't interfere with the flipping generation, I have made a sure of that.",
+					max_line_len,
+					true
+				)
 			)
-		)
+		end
 		
 		ImGui.EndChild(self.ctx)
 	end
