@@ -1051,6 +1051,7 @@ function GUI:TAB_VFX()
 			end
 		end
 		
+		----------------------------------------------------------------------------------------------------------------
 		
 		if ImGui.CollapsingHeader(self.ctx, "HELPERS") then
 			if ImGui_ButtonWithHint(self.ctx, "Aspectratio Fixer", 0.5,
@@ -1070,6 +1071,7 @@ function GUI:TAB_VFX()
 			end
 		end
 		
+		----------------------------------------------------------------------------------------------------------------
 		
 		if ImGui.CollapsingHeader(self.ctx, "CROPING") then
 			if ImGui_ButtonWithHint(self.ctx, "Box Crop", 0.5) then
@@ -1084,7 +1086,8 @@ function GUI:TAB_VFX()
 				end)
 			end
 		end
-
+		
+		----------------------------------------------------------------------------------------------------------------
 		
 		if ImGui.CollapsingHeader(self.ctx, "MISC") then
 			if ImGui_ButtonWithHint(self.ctx, "Solid Color Fill", 0.5,
@@ -1096,6 +1099,7 @@ function GUI:TAB_VFX()
 			end
 		end
 		
+		----------------------------------------------------------------------------------------------------------------
 		
 		if ImGui.CollapsingHeader(self.ctx, "FINALIZERS") then
 			if ImGui_ButtonWithHint(self.ctx, "Chroma-key", 0.5,
@@ -1111,7 +1115,7 @@ function GUI:TAB_VFX()
 			end
 		end
 
-		--------------------------------------------------------------------------------------------------------------------
+		----------------------------------------------------------------------------------------------------------------
 
 		ImGui.EndChild(self.ctx)
 	end
@@ -1320,7 +1324,20 @@ function GUI:TAB_FAQ()
 			)
 		end
 		
-
+		----------------------------------------------------------------------------------------------------------------
+		
+		if ImGui.CollapsingHeader(self.ctx, "VFX: Chroma Key?") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"Every VFX you add will be added before existing Chroma Key, so you don't have to do that manually.",
+					max_line_len,
+					true
+				)
+			)
+		end
+		
+		----------------------------------------------------------------------------------------------------------------
+		
 		if ImGui.CollapsingHeader(self.ctx, "Helpers: Automation Items?") then
 			ImGui.Text(self.ctx,
 				TextWrapper(
