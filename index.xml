@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="NAGASHIZAR" commit="60198b6e742bd299dc1d3b5056a13d39c1f1f550">
+<index version="1" name="NAGASHIZAR" commit="59c82c748ac0b47f986c93b5c9bf17ad5109df91">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -134,21 +134,81 @@
       </version>
     </reapack>
   </category>
+  <category name="Video">
+    <reapack name="meta_VideoAutoFlipper.lua" type="script" desc="Video Auto-Flipper [YTPMV]">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Video Auto-Flipper [YTPMV]\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items with a specified presset in the GUI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips preview in the GUI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a tab for VFX chains for ease of making simple but yet presentable and easilty animatable visuals in Reaper.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a tab for Helper functions.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has some brief FAQ page, just in case.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0.0" author="Zly" time="2024-03-16T13:36:32Z">
+        <changelog><![CDATA[- Init release.]]></changelog>
+        <source main="main" file="VideoAutoFlipper/Zly_VideoAutoFlipper.lua">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
+        <source file="VideoAutoFlipper/images/img_jokeguy.png">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/images/img_jokeguy.png</source>
+        <source file="VideoAutoFlipper/images/img_sigma.png">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/images/img_sigma.png</source>
+        <source file="VideoAutoFlipper/images/img_squid.png">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/images/img_squid.png</source>
+        <source file="VideoAutoFlipper/images/img_timeOfSigma.png">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/images/img_timeOfSigma.png</source>
+        <source file="VideoAutoFlipper/images/img_who.png">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/images/img_who.png</source>
+        <source file="VideoAutoFlipper/images/img_zenkuru.png">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/images/img_zenkuru.png</source>
+        <source file="VideoAutoFlipper/VP_Presets/AspectratioFixer.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/AspectratioFixer.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/BoxCrop.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/BoxCrop.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Chroma.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Chroma.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Cropper.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Cropper.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Flipper.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Flipper.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Null.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Null.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Opacity.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Opacity.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/PositionOffset.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/PositionOffset.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Pre-Compose.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Pre-Compose.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Rotate.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Rotate.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Scale.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/Scale.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/SolidColorFill.eel">https://github.com/Zly-u/zly_reapack/raw/59c82c748ac0b47f986c93b5c9bf17ad5109df91/Video/VideoAutoFlipper/VP_Presets/SolidColorFill.eel</source>
+      </version>
+    </reapack>
+  </category>
   <metadata>
     <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 NAGASHIZAR's ReaPack Repository\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A repo of scripts that the members of NAGASHIZAR have made for simplifying and automating their Music/YTPMV workflow.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Main maintainer: {\field{\*\fldinst{HYPERLINK "https://github.com/Zly-u"}}{\fldrslt{\ul
-Zly
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Zly's ReaPack Repository\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 About\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A repo of scripts that I have made for simplifying and automating my personal Music/YTPMV work processes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Each script's folder should contain a ReadMe describing what each script does.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Adding the Repo into {\field{\*\fldinst{HYPERLINK "https://reapack.com/"}}{\fldrslt{\ul
+ReaPack
+}}}
+:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Add {\f1 https://github.com/Zly-u/zly_reapack/raw/master/index.xml} through: {\f1 Extensions} -> {\f1 ReaPack} -> {\f1 Import Repositories}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab And, just in case: {\f1 Extensions} -> {\f1 ReaPack} -> {\f1 Synchronize Packages}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 TEMPLATES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 {\field{\*\fldinst{HYPERLINK "https://github.com/Zly-u/zly_reapack/blob/master/_Templates/ImGui_Script.lua"}}{\fldrslt{\ul
+ImGui_Script.lua
 }}}
 \par}
-{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://www.youtube.com/@NAGASHIZARr"}}{\fldrslt{\ul
-NAGASHIZAR YT
+{\pard \ql \f0 \sa180 \li0 \fi0 An ImGui template script to easily start developing scripts with UIs.\line It already contains some helper functionality such as:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A base organisation for Window and UI development with {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reaimgui"}}{\fldrslt{\ul
+ReaImGui
 }}}
-\par}
+.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Contains ReaImGui demo for the ease of learning UI dev for it.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Dependencies Checker.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline String Constructor {\f1 MultLineStringConstructor(...)}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Path Relative scripts requiring through {\f1 require(module)}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Modified native {\f1 print(...)} function to work with Reaper's console.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 URL_Openner(URL)}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Borrowed and slightly modified {\f1 InfoHelper} from ReaImGui: {\f1 ImGui_InfoMarker(ctx, desc)}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Converts ReaImGui's and JS's functions into simplified OOP kinda oriented syntax, examples:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 reaper.ImGui_Begin(ctx)} -> {\f1 ImGui.Begin(ctx)}\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 reaper.JS_Dialog_BrowseForOpenFiles(...)} -> {\f1 JS.Dialog_BrowseForOpenFiles(...)}\sa180\sa180\par}
 }
 ]]></description>
     <link rel="website">https://www.youtube.com/@NAGASHIZARr</link>
