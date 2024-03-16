@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Zly's Reapack repo" commit="969397d28e25a1906840f9896787290d81f0ff56">
+<index version="1" name="Zly's Reapack Repo" commit="969397d28e25a1906840f9896787290d81f0ff56">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
