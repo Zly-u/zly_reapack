@@ -8,7 +8,7 @@ do	-- Allows to require scripts relatively to this current script's path.
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
 	package.path = filename:match("^(.*)[\\/](.-)$") .. "/?.lua;" .. package.path
 end
-
+--
 --[[===================================================]]--
 --[[=================== HELPERS =======================]]--
 --[[===================================================]]--
