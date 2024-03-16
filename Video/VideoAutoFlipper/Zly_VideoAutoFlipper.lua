@@ -1015,106 +1015,100 @@ function GUI:TAB_VFX()
 	ImGui_AlignedText(self.ctx, "get desciption for them.", 0.5)
 
 	if ImGui.BeginChild(self.ctx, "VFX", 0, 0, true, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.SeparatorText(self.ctx, "TRANSFORM")
-		--------------------------------------------------------------------------------------------------------------------
-
-		if ImGui_ButtonWithHint(self.ctx, "Position Offset", 0.5,
-			"Sets the Video's position in percentage."
-		) then
-			UndoWrap("[VAF] Add Position Offset", function()
-				Add_fx("VAF: Position Offset", "PositionOffset.eel", true)
-			end)
+		if ImGui.CollapsingHeader(self.ctx, "TRANSFORM") then
+			if ImGui_ButtonWithHint(self.ctx, "Position Offset", 0.5,
+					"Sets the Video's position in percentage."
+			) then
+				UndoWrap("[VAF] Add Position Offset", function()
+					Add_fx("VAF: Position Offset", "PositionOffset.eel", true)
+				end)
+			end
+			
+			if ImGui_ButtonWithHint(self.ctx, "Rotate", 0.5) then
+				UndoWrap("[VAF] Rotate", function()
+					Add_fx("VAF: Rotate", "Rotate.eel", true)
+				end)
+			end
+			
+			if ImGui_ButtonWithHint(self.ctx, "Scale", 0.5) then
+				UndoWrap("[VAF] Scale", function()
+					Add_fx("VAF: Scale", "Scale.eel", true)
+				end)
+			end
+			
+			if ImGui_ButtonWithHint(self.ctx, "Opacity", 0.5) then
+				UndoWrap("[VAF] Opacity", function()
+					Add_fx("VAF: Opacity", "Opacity.eel", true)
+				end)
+			end
+			
+			if ImGui_ButtonWithHint(self.ctx, "Flipper", 0.5,
+					"Mainly used for fliping the videos,\nregular scaling doesn't let you do that."
+			) then
+				UndoWrap("[VAF] Flipper", function()
+					Add_fx("VAF: Flipper", "Flipper.eel", true)
+				end)
+			end
+		end
+		
+		
+		if ImGui.CollapsingHeader(self.ctx, "HELPERS") then
+			if ImGui_ButtonWithHint(self.ctx, "Aspectratio Fixer", 0.5,
+					"Fixes aspectratio of the videos that don't match the size of the composition."
+			) then
+				UndoWrap("[VAF] Aspectratio Fixer", function()
+					Add_fx("VAF: Aspectratio Fixer", "AspectratioFixer.eel", true)
+				end)
+			end
+			
+			if ImGui_ButtonWithHint(self.ctx, "Pre-Compose", 0.5,
+					"Bakes the current rendered frame as if it was After Effect's Pre-Compose kind of thing."
+			) then
+				UndoWrap("[VAF] Pre-Compose", function()
+					Add_fx("VAF: Pre-Compose", "Pre-Compose.eel", true)
+				end)
+			end
+		end
+		
+		
+		if ImGui.CollapsingHeader(self.ctx, "CROPING") then
+			if ImGui_ButtonWithHint(self.ctx, "Box Crop", 0.5) then
+				UndoWrap("[VAF] Box Crop", function()
+					Add_fx("VAF: Box Crop", "BoxCrop.eel", true)
+				end)
+			end
+			
+			if ImGui_ButtonWithHint(self.ctx, "Cropper", 0.5) then
+				UndoWrap("[VAF] Cropper", function()
+					Add_fx("VAF: Cropper", "Cropper.eel", true)
+				end)
+			end
 		end
 
-		if ImGui_ButtonWithHint(self.ctx, "Rotate", 0.5) then
-			UndoWrap("[VAF] Rotate", function()
-				Add_fx("VAF: Rotate", "Rotate.eel", true)
-			end)
+		
+		if ImGui.CollapsingHeader(self.ctx, "MISC") then
+			if ImGui_ButtonWithHint(self.ctx, "Solid Color Fill", 0.5,
+					"Just fills the whole composition with a solid color."
+			) then
+				UndoWrap("[VAF] Solid Color Fill", function()
+					Add_fx("VAF: Solid Color Fill", "SolidColorFill.eel", true)
+				end)
+			end
 		end
-
-		if ImGui_ButtonWithHint(self.ctx, "Scale", 0.5) then
-			UndoWrap("[VAF] Scale", function()
-				Add_fx("VAF: Scale", "Scale.eel", true)
-			end)
-		end
-
-		if ImGui_ButtonWithHint(self.ctx, "Opacity", 0.5) then
-			UndoWrap("[VAF] Opacity", function()
-				Add_fx("VAF: Opacity", "Opacity.eel", true)
-			end)
-		end
-
-		if ImGui_ButtonWithHint(self.ctx, "Flipper", 0.5,
-			"Mainly used for fliping the videos,\nregular scaling doesn't let you do that."
-		) then
-			UndoWrap("[VAF] Flipper", function()
-				Add_fx("VAF: Flipper", "Flipper.eel", true)
-			end)
-		end
-
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.SeparatorText(self.ctx, "HELPERS")
-		--------------------------------------------------------------------------------------------------------------------
-
-		if ImGui_ButtonWithHint(self.ctx, "Aspectratio Fixer", 0.5,
-			"Fixes aspectratio of the videos that don't match the size of the composition."
-		) then
-			UndoWrap("[VAF] Aspectratio Fixer", function()
-				Add_fx("VAF: Aspectratio Fixer", "AspectratioFixer.eel", true)
-			end)
-		end
-
-		if ImGui_ButtonWithHint(self.ctx, "Pre-Compose", 0.5,
-			"Bakes the current rendered frame as if it was After Effect's Pre-Compose kind of thing."
-		) then
-			UndoWrap("[VAF] Pre-Compose", function()
-				Add_fx("VAF: Pre-Compose", "Pre-Compose.eel", true)
-			end)
-		end
-
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.SeparatorText(self.ctx, "CROPING")
-		--------------------------------------------------------------------------------------------------------------------
-
-		if ImGui_ButtonWithHint(self.ctx, "Box Crop", 0.5) then
-			UndoWrap("[VAF] Box Crop", function()
-				Add_fx("VAF: Box Crop", "BoxCrop.eel", true)
-			end)
-		end
-
-		if ImGui_ButtonWithHint(self.ctx, "Cropper", 0.5) then
-			UndoWrap("[VAF] Cropper", function()
-				Add_fx("VAF: Cropper", "Cropper.eel", true)
-			end)
-		end
-
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.SeparatorText(self.ctx, "MISC")
-		--------------------------------------------------------------------------------------------------------------------
-
-		if ImGui_ButtonWithHint(self.ctx, "Solid Color Fill", 0.5,
-		"Just fills the whole composition with a solid color."
-		) then
-			UndoWrap("[VAF] Solid Color Fill", function()
-				Add_fx("VAF: Solid Color Fill", "SolidColorFill.eel", true)
-			end)
-		end
-
-		--------------------------------------------------------------------------------------------------------------------
-		ImGui.SeparatorText(self.ctx, "FINALIZERS")
-		--------------------------------------------------------------------------------------------------------------------
-
-		if ImGui_ButtonWithHint(self.ctx, "Chroma-key", 0.5,
-			MultiLineStringConstructor(-1,
-				"A very inmportant effect that needs to be placed at the end of the chain of those effects that are listed above.",
-				"",
-				"It's done in such way due to Reaper's limitations/absurd control over the video elements in the rendering, so this is a workaround for compositing alike methods of working with videos."
-			)
-		) then
-			UndoWrap("[VAF] Chroma-key", function()
-				Add_fx("VAF: Chroma-key", "Chroma.eel", true)
-			end)
+		
+		
+		if ImGui.CollapsingHeader(self.ctx, "FINALIZERS") then
+			if ImGui_ButtonWithHint(self.ctx, "Chroma-key", 0.5,
+				MultiLineStringConstructor(-1,
+					"A very inmportant effect that needs to be placed at the end of the chain of those effects that are listed above.",
+					"",
+					"It's done in such way due to Reaper's limitations/absurd control over the video elements in the rendering, so this is a workaround for compositing alike methods of working with videos."
+				)
+			) then
+				UndoWrap("[VAF] Chroma-key", function()
+					Add_fx("VAF: Chroma-key", "Chroma.eel", true)
+				end)
+			end
 		end
 
 		--------------------------------------------------------------------------------------------------------------------
