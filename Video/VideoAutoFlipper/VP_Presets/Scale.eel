@@ -1,4 +1,4 @@
-//Scale
+// VAF: Scale
 //@param<idx>[:varname] 'name' [defval minval maxval centval step]
 //@param1:p_scale 'Scale' 1 0.01 2 1
 //@param2:p_scale_x 'X Scale' 1 0.01 2 1

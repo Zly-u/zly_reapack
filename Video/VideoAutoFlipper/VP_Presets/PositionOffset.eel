@@ -1,4 +1,4 @@
-//Position Offset
+// VAF: Position Offset
 //@param<idx>[:varname] 'name' [defval minval maxval centval step]
 //@param1:p_x_offs 'X offset' 0 -1 1 0 0.001
 //@param2:p_y_offs 'Y offset' 0 -1 1 0 0.001

@@ -1,4 +1,4 @@
-//Rotate
+// VAF: Rotate
 //@param1:rotate 'rotate' 0 -360 360 0 1
 //@param2:filter 'filter' 0 0 1 0.5 1
 

@@ -1,4 +1,4 @@
-// Aspectratio fixer
+// VAF: Aspectratio fixer
 //@param1:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
 
 gfx_b = p_bg_clr;

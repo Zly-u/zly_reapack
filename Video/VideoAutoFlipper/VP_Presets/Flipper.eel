@@ -1,4 +1,4 @@
-// Flipper
+// VAF: Flipper
 //@param<idx>[:varname] 'name' [defval minval maxval centval step]
 //@param1:h_flip 'Horiz flip' 0 0 1 0.5 1
 //@param2:v_flip 'Vert flip' 0 0 1 0.5 1

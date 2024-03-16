@@ -1,4 +1,4 @@
-//Box Crop
+// VAF: Box Crop
 //By Zly
 
 //@param<idx>[:varname] 'name' [defval minval maxval centval step]

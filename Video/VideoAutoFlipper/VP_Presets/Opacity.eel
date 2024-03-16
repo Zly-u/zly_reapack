@@ -1,4 +1,4 @@
-//Opacity
+// VAF: Opacity
 //@param1:opacity 'Opacity' 1
 
 bg_img = input_ismaster() ? -2 : input_track(0);

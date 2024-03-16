@@ -680,9 +680,10 @@ local VAF = {
 
 
 	AddVFX = function(self, track, name, presset_name, force_add)
+		local fx_chroma = reaper.TrackFX_GetByName(track, "VAF: Chroma-key", false)
 		local fx = reaper.TrackFX_GetByName(track, name, false)
 		if fx == -1 or force_add then
-			fx = reaper.TrackFX_AddByName(track, "Video processor", 0, 1)
+			fx = reaper.TrackFX_AddByName(track, "Video processor", 0, fx_chroma ~= -1 and -1000-fx_chroma or 1)
 			reaper.TrackFX_SetNamedConfigParm(track, fx, "renamed_name", name)
 			reaper.TrackFX_SetNamedConfigParm(track, fx, "VIDEO_CODE", self.VP_Presets[presset_name])
 		end
@@ -1282,7 +1283,7 @@ end
 
 function GUI:TAB_FAQ()
 	local fla = 0
-		| reaper.ImGui_WindowFlags_NoResize()
+		| ImGui.WindowFlags_NoResize()
 		| ImGui.WindowFlags_AlwaysVerticalScrollbar()
 	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, fla) then
 		local max_line_len = 36
