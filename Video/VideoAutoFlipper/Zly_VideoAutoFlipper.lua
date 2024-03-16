@@ -9,91 +9,22 @@ do	-- Allows to require scripts relatively to this current script's path.
 	package.path = filename:match("^(.*)[\\/](.-)$") .. "/?.lua;" .. package.path
 end
 
+--[[===================================================]]--
+--[[=================== HELPERS =======================]]--
+--[[===================================================]]--
+
 local function UndoWrap(block_name, func)
 	reaper.Undo_BeginBlock()
 	func()
 	reaper.Undo_EndBlock(block_name, 0)
 end
 
---[[===================================================]]--
---[[============== TEMP CODE FOR DEBUG ================]]--
---[[vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv]]--
-
-_G._print = print
-_G.print = function(...)
-	local string = ""
-	for _, v in pairs({...}) do
-		string = string .. tostring(v) .. "\t"
-	end
-	string = string.."\n"
-	reaper.ShowConsoleMsg(string)
-end
-
-local function printTable(t, show_details)
-	show_details = show_details or false
-	local printTable_cache = {}
-
-	local function sub_printTable(_t, indent, indenty)
-		indenty = indenty or indent
-
-		if printTable_cache[tostring(_t)] then
-			print(indenty .. "Already used: " .. tostring(_t))
-			return
-		end
-
-		printTable_cache[tostring(_t)] = true
-		if type(_t) ~= "table" then
-			print(indenty..(show_details and tostring(_t) or ""))
-			return
-		end
-
-
-		for key, val in pairs(_t) do
-			if type(val) == "table" then
-				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
-				sub_printTable(val, indent, indenty..indent)
-				print(indenty .. "}")
-			elseif type(val) == "string" then
-				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
-			else
-				print(indenty .. "[" .. key .. "] => " .. tostring(val))
-			end
-		end
-	end
-
-	if type(t) == "table" then
-		print((show_details and tostring(t)..": " or "").."{")
-		sub_printTable(t, "\t")
-		print("}")
-	else
-		sub_printTable(t, "\t")
-	end
-end
-
---[[===================================================]]--
-
-do
-	local demo = require("ImGui_demo")
-	local demo_ctx = reaper.ImGui_CreateContext("Demo")
-	local function loop()
-		demo.PushStyle(demo_ctx)
-		demo.ShowDemoWindow(demo_ctx)
-		if reaper.ImGui_Begin(demo_ctx, "Dear ImGui Style Editor") then
-			demo.ShowStyleEditor(demo_ctx)
-			reaper.ImGui_End(demo_ctx)
-		end
-		demo.PopStyle(demo_ctx)
-		reaper.defer(loop)
-	end
-	reaper.defer(loop)
-end
-
 local function GetFilesInDir(sub_path)
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
 	local script_path = filename:match("^(.*)[\\/](.-)$")
-
+	
 	local dirs = {}
-
+	
 	local file_index = 0
 	while true do
 		local file = reaper.EnumerateFiles(script_path.."\\"..sub_path, file_index)
@@ -103,13 +34,9 @@ local function GetFilesInDir(sub_path)
 		dirs[file] = script_path.."\\"..sub_path.."\\"..file
 		file_index = file_index + 1
 	end
-
+	
 	return dirs
 end
-
---[[===================================================]]--
---[[=================== HELPERS =======================]]--
---[[===================================================]]--
 
 local function URL_Openner(URL)
 	local OS = ({
