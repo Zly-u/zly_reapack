@@ -237,10 +237,10 @@ ReaImGui
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 reaper.JS_Dialog_BrowseForOpenFiles(...)} -> {\f1 JS.Dialog_BrowseForOpenFiles(...)}\sa180\sa180\par}
 }
 ]]></description>
-    <link rel="Repo">https://github.com/Zly-u/zly_reapack</link>
-    <link rel="Author">https://twitter.com/zly_u</link>
-    <link rel="Author">https://bsky.app/profile/zly.bsky.social</link>
-    <link rel="Author">https://www.youtube.com/@AmySupica</link>
-    <link rel="Support">https://boosty.to/zly</link>
+    <link rel="website" href="https://github.com/Zly-u/zly_reapack">Repo's GitHub</link>
+    <link rel="website" href="https://twitter.com/zly_u">Twitter</link>
+    <link rel="website" href="https://bsky.app/profile/zly.bsky.social">BluSky</link>
+    <link rel="website" href="https://www.youtube.com/@AmySupica">YT (Amy Supica)</link>
+    <link rel="donation" href="https://boosty.to/zly">Donate</link>
   </metadata>
 </index>
