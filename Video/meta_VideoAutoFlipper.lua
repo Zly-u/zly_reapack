@@ -7,6 +7,11 @@
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
 	.\VideoAutoFlipper\VP_Presets\*.eel
+@links
+	Details https://github.com/Zly-u/zly_reapack/tree/master/Video/VideoAutoFlipper
+	Wiki https://github.com/Zly-u/zly_reapack/wiki
+@donation
+	Donate https://boosty.to/zly
 @about
 	# Video Auto-Flipper [YTPMV]
 
