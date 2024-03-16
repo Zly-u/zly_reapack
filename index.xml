@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Zly's Reapack repo" commit="1a47782d1ca8f454801d76a705a412319d2dc477">
+<index version="1" name="Zly's Reapack repo" commit="c4310e09099a7678b9afdcab12a0921d2da4777d">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -142,7 +142,8 @@
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Video Auto-Flipper [YTPMV]\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items with a specified presset in the GUI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips selected items with a specified presset in the GUI.\\\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has additional settings for the flipping.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flips preview in the GUI.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a tab for VFX chains for ease of making simple but yet presentable and easilty animatable visuals in Reaper.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has a tab for Helper functions.\par}
