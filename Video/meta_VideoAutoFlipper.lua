@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.0.1
+@version 1.0.2
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -22,5 +22,5 @@
 	- Has a tab for Helper functions.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Removed ImGui demo script requirement.
+	- Removed unused dependencie.
 --]]
