@@ -215,7 +215,6 @@ local DepsChecker = {
 	end
 }
 
-DepsChecker:AddDepsToCheck(reaper.JS_Dialog_BrowseForOpenFiles, "js_ReaScriptAPI")
 DepsChecker:AddDepsToCheck(reaper.ImGui_Begin, "\"ReaImGui: ReaScript binding for Dear ImGui\"")
 if not DepsChecker:CheckLibs() then
 	return
@@ -224,18 +223,11 @@ end
 --[[===================================================]]--
 
 local ImGui = {}
-local JS = {}
 for name, func in pairs(reaper) do
 	local name_imgui = name:match('^ImGui_(.+)$')
-	local name_js	 = name:match('^JS_(.+)$')
 
 	if name_imgui then
 		ImGui[name_imgui] = func
-		goto namespace_cont
-	end
-
-	if name_js then
-		JS[name_js] = func
 		goto namespace_cont
 	end
 
@@ -437,7 +429,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.0",
+	version = "1.0.2",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
