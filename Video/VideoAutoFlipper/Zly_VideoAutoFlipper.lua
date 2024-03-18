@@ -52,6 +52,8 @@ local function URL_Openner(URL)
 	os.execute(OS .. " " .. URL)
 end
 
+reaper.CF_ShellExecute = reaper.CF_ShellExecute or URL_Openner
+
 local function SplitString(str, delimiter, max_splits)
 	max_splits = max_splits or -1
 
@@ -429,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.2",
+	version = "1.0.3",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
