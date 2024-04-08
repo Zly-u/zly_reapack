@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.0.4
+@version 1.0.5
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -15,12 +15,12 @@
 @about
 	# Video Auto-Flipper [YTPMV]
 
-	- Flips selected items with a specified presset in the GUI.\
+	- Flips selected items with a specified presset in the GUI.
 	- Has additional settings for the flipping.
 	- Flips preview in the GUI.
 	- Has a tab for VFX chains for ease of making simple but yet presentable and easilty animatable visuals in Reaper.
 	- Has a tab for Helper functions.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Kinda fixed the case when useing Pooled Automation Items they would pool into other Automation Items because they used the same IDs. Sorry, I don't have motiovation to do it properly rn, it's kinda a pain in the ass.
+	- Actually made a use of checkbox for adding aspect ratio fixer.
 --]]
