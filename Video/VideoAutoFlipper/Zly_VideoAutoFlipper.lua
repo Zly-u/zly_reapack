@@ -431,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.4",
+	version = "1.0.5",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -636,6 +636,10 @@ local VAF = {
 		local env_opacity		= nil
 
 		local flips_check = found_preset(0, nil)
+		
+		if params.add_ar_fixer then
+			local _ = self:AddVFX(item_track, "VAF: Aspectratio fixer", "AspectratioFixer.eel")
+		end
 		
 		-- Add Flipper
 		if params.add_flips then
@@ -884,6 +888,7 @@ function GUI:TAB_Flipper()
 		local params = {
 			volume_to_opacity			= self.UI_Data.CHB_volume_to_opacity,
 			add_flips					= self.UI_Data.CHB_add_flips,
+			add_ar_fixer				= self.UI_Data.CHB_add_aspect_fixer,
 			flip_only_on_pitch_change	= self.UI_Data.CHB_flip_only_on_pitch_change
 		}
 		UndoWrap("[VAF] Apply Presset", function()
