@@ -8,7 +8,7 @@ do	-- Allows to require scripts relatively to this current script's path.
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
 	package.path = filename:match("^(.*)[\\/](.-)$") .. "/?.lua;" .. package.path
 end
---
+
 --[[===================================================]]--
 --[[=================== HELPERS =======================]]--
 --[[===================================================]]--
@@ -431,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.3",
+	version = "1.0.4",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -657,7 +657,7 @@ local VAF = {
 		--------------------------------------------------------------------------------
 		
 		local prev_ai = nil
-		local process_event = function(env, env_id, value, item_take, item_pos, item_len)
+		local process_event_func = function(env, env_id, value, item_take, item_pos, item_len)
 			if not env then return end
 			
 			local ai_i = -1
@@ -666,17 +666,17 @@ local VAF = {
 			if take_name == "VAF_SILENT_FILL" then
 				local env_len = reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", 0, false)
 				reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", env_len+item_len, true)
-				goto fuck_off
+				goto fuck_off -- could used `else` but this is funny, i was tired at some point cuz of this dum API.
 			end
-
+			
 			ai_i = reaper.InsertAutomationItem(
 				env,
 				env_id,
 				item_pos, item_len
 			)
-
+			
 			prev_ai = ai_i
-
+			
 			reaper.InsertEnvelopePointEx(
 				env,
 				ai_i,
@@ -690,9 +690,11 @@ local VAF = {
 		
 		local flip_index = -1
 		local prev_pitch = nil
+		-- TODO: Make this collision proof...
+		local ID_Offset = math.random(10000, 696969)
 		for index = 0, items_count - 1 do
 			local item		= reaper.GetSelectedMediaItem(0, index)
-			local item_take  = reaper.GetActiveTake(item)
+			local item_take = reaper.GetActiveTake(item)
 			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
 			local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
 			
@@ -715,10 +717,12 @@ local VAF = {
 			
 			local evaluated_flips = found_preset(flip_index, item)
 			
-			process_event(env_horiz_flip,	math.max(evaluated_flips.h or 0, 0)+69, math.max(evaluated_flips.h or 0, 0), item_take, item_pos, item_len)
-			process_event(env_vert_flip,	math.max(evaluated_flips.v or 0, 0)+69, math.max(evaluated_flips.v or 0, 0), item_take, item_pos, item_len)
+			-- TODO: Fix this mess of IDs...
+			process_event_func(env_horiz_flip,	math.max(evaluated_flips.h or 0, 0)+ID_Offset, math.max(evaluated_flips.h or 0, 0), item_take, item_pos, item_len)
+			process_event_func(env_vert_flip,	math.max(evaluated_flips.v or 0, 0)+ID_Offset, math.max(evaluated_flips.v or 0, 0), item_take, item_pos, item_len)
 			local item_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
-			process_event(env_opacity,		math.floor(item_vol * 255), item_vol, item_take, item_pos, item_len)
+			-- TODO: Fix Vol IDs for each of the newly generated envelopes, like, make them into batches somehow idk.
+			process_event_func(env_opacity,		math.floor(item_vol * 255)+ID_Offset, item_vol, item_take, item_pos, item_len)
 			
 			GUI.UI_Data.flip_count = GUI.UI_Data.flip_count + 1
 		end
@@ -855,13 +859,13 @@ function GUI:TAB_Flipper()
 	end
 
 	self.UI_Data.CHB_add_aspect_fixer_click, self.UI_Data.CHB_add_aspect_fixer =
-	ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer", self.UI_Data.CHB_add_aspect_fixer)
+		ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer", self.UI_Data.CHB_add_aspect_fixer)
 
 	self.UI_Data.CHB_add_flips_click, self.UI_Data.CHB_add_flips =
-	ImGui.Checkbox(self.ctx, "Add Flips", self.UI_Data.CHB_add_flips)
+		ImGui.Checkbox(self.ctx, "Add Flips", self.UI_Data.CHB_add_flips)
 
 	self.UI_Data.CHB_volume_to_opacity_click, self.UI_Data.CHB_volume_to_opacity =
-	ImGui.Checkbox(self.ctx, "Volume -> Opacity", self.UI_Data.CHB_volume_to_opacity)
+		ImGui.Checkbox(self.ctx, "Volume -> Opacity", self.UI_Data.CHB_volume_to_opacity)
 
 	--------------------------------------------------------------------------------------------------------------------
 	ImGui.SeparatorText(self.ctx, "SETTINGS")
@@ -869,7 +873,7 @@ function GUI:TAB_Flipper()
 	-- Settings --
 
 	self.UI_Data.CHB_flip_only_on_pitch_change_click, self.UI_Data.CHB_flip_only_on_pitch_change =
-	ImGui.Checkbox(self.ctx, "Flip only on Pitch change.", self.UI_Data.CHB_flip_only_on_pitch_change)
+		ImGui.Checkbox(self.ctx, "Flip only on Pitch change.", self.UI_Data.CHB_flip_only_on_pitch_change)
 
 	--------------------------------------------------------------------------------------------------------------------
 	ImGui.SeparatorText(self.ctx, "")
@@ -1053,6 +1057,7 @@ local function create_AI(isPooled)
 		return
 	end
 
+	local env_pool_id = nil
 	for i = 0, item_count-1 do
 		local item 			= reaper.GetSelectedMediaItem(0, i)
 		local item_track	= reaper.GetMediaItemTrack(item)
@@ -1062,10 +1067,21 @@ local function create_AI(isPooled)
 
 		local fx_null = VAF:AddVFX(item_track, "VAF: NULL", "Null.eel", false)
 		local env_null = reaper.GetFXEnvelope(item_track, fx_null, 0, true)
-
-		local _ = reaper.InsertAutomationItem(
+		
+		-- For some reason when you create an AutoItem and then you try to use the same ID
+		-- the first AutoItem will not be pooled with everything else... So i try to hide it far away lol.
+		-- the API is stupid.
+		if isPooled and env_pool_id == nil then
+			env_pool_id = reaper.InsertAutomationItem(
+				env_null,
+				-1,
+				100000+item_pos, item_len
+			)
+		end
+		
+		local env_index = reaper.InsertAutomationItem(
 			env_null,
-			isPooled and 69 or -1,
+				isPooled and env_pool_id or -1,
 			item_pos, item_len
 		)
 	end

@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.0.3
+@version 1.0.4
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -22,5 +22,5 @@
 	- Has a tab for Helper functions.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Fixed the case where `reaper.CF_ShellExecute` didn't existed, so it would break the UI.
+	- Kinda fixed the case when useing Pooled Automation Items they would pool into other Automation Items because they used the same IDs. Sorry, I don't have motiovation to do it properly rn, it's kinda a pain in the ass.
 --]]
