@@ -431,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.5",
+	version = "1.0.6",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
