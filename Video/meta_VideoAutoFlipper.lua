@@ -26,7 +26,7 @@
 
 	- Added `Delete Silent Fills` util.
 	
-	- Added some descriptions
+	- Added some descriptions.
 	
 	- Changed default states of checkboxes.
 	
