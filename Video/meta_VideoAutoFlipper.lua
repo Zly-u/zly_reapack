@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.0.6.1
+@version 1.0.7
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -22,15 +22,5 @@
 	- Has a tab for Helper functions.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Made it so Flip Automation Items match each of the Media Items from start to end with play rate, it's based on the very first generated Automation Item's length.
-
-	- Added `Delete Silent Fills` util.
-	
-	- Added some descriptions.
-	
-	- Changed default states of checkboxes.
-	
-	- Fixed `Silent Extend to Next` util not extending all the items.
-	
-	- Fixed Automation Items not properly generating the first time.
+	- Fixed wrong playrates for Automation Items generated for flips.
 --]]
