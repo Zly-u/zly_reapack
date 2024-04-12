@@ -431,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.6",
+	version = "1.0.7",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -658,41 +658,39 @@ local VAF = {
 		
 		local first_ai_len = nil
 		local prev_ai = nil
-		local process_event_func = function(env, env_id, value, item_take, item_pos, item_len)
-			if not env then return end
-			
-			local ai_i = -1
+		local process_event_func = function(env_track, env_id, value, item_take, item_pos, item_len)
+			if not env_track then return end
 			
 			local _, take_name = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
 			if take_name == "VAF_SILENT_FILL" and prev_ai then
-				local env_len = reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", 0, false)
-				local target_len = env_len + item_len
-				reaper.GetSetAutomationItemInfo(env, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
-				reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", env_len+item_len, true)
-				goto fuck_off -- could used `else` but this is funny, i was tired at some point cuz of this dum API.
+				local prev_env_len = reaper.GetSetAutomationItemInfo(env_track, prev_ai, "D_LENGTH", 0, false)
+				local target_len = prev_env_len + item_len
+				reaper.GetSetAutomationItemInfo(env_track, prev_ai, "D_LENGTH",   target_len, true)
+				reaper.GetSetAutomationItemInfo(env_track, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
+			else
+				local ai_i = reaper.InsertAutomationItem(
+					env_track,
+					env_id,
+					item_pos, first_ai_len and first_ai_len or item_len
+				)
+				
+				reaper.InsertEnvelopePointEx(
+					env_track,
+					ai_i,
+					item_pos, value,
+					1, 1,
+					false, false
+				)
+				
+				if not first_ai_len then
+					first_ai_len = reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_LENGTH", 0, false)
+				else
+					reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_LENGTH", item_len, true)
+					reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_PLAYRATE", first_ai_len/item_len, true)
+				end
+				
+				prev_ai = ai_i
 			end
-			
-			ai_i = reaper.InsertAutomationItem(
-				env,
-				env_id,
-				item_pos, item_len
-			)
-			
-			reaper.InsertEnvelopePointEx(
-				env,
-				ai_i,
-				item_pos, value,
-				1, 1,
-				false, false
-			)
-			
-			if not first_ai_len then
-				first_ai_len = reaper.GetSetAutomationItemInfo(env, ai_i, "D_LENGTH", 0, false)
-			end
-			
-			prev_ai = ai_i
-			
-			::fuck_off::
 		end
 		
 		local flip_index = -1
@@ -1086,8 +1084,8 @@ local function create_AI(isPooled)
 		if take_name == "VAF_SILENT_FILL" and prev_ai then -- Silent fill skips
 			local env_len = reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_LENGTH", 0, false)
 			local target_len = env_len + item_len
-			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
 			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_LENGTH", env_len+item_len, true)
+			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
 		else -- AI creation
 			-- For some reason when you create an AutoItem and then you try to use the same ID
 			-- the first AutoItem will not be pooled with everything else... So i try to hide it far away lol.
@@ -1108,6 +1106,8 @@ local function create_AI(isPooled)
 			
 			if not first_ai_len then
 				first_ai_len = reaper.GetSetAutomationItemInfo(env_null, env_index, "D_LENGTH", 0, false)
+			else
+				reaper.GetSetAutomationItemInfo(env_null, env_index, "D_PLAYRATE", first_ai_len/item_len, true)
 			end
 			
 			prev_ai = env_index
