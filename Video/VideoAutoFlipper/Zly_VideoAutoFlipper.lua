@@ -4,9 +4,64 @@
 
 -- @noindex
 
+-- TODO: Fix IDs for Pooled Envelopes, need to double create it in order to make proper empty envelopes
+-- TODO: AI generation skips silent fills
+
 do	-- Allows to require scripts relatively to this current script's path.
 	local filename = debug.getinfo(1, "S").source:match("^@?(.+)$")
 	package.path = filename:match("^(.*)[\\/](.-)$") .. "/?.lua;" .. package.path
+end
+
+_G._print = print
+_G.print = function(...)
+	local string = ""
+	for _, v in pairs({...}) do
+		string = string .. tostring(v) .. "\t"
+	end
+	string = string.."\n"
+	reaper.ShowConsoleMsg(string)
+end
+
+local function printTable(t, show_details)
+	show_details = show_details or false
+	local printTable_cache = {}
+	
+	local function sub_printTable(_t, indent, indenty)
+		indenty = indenty or indent
+		
+		if printTable_cache[tostring(_t)] then
+			print(indenty .. "Already used: " .. tostring(_t))
+			return
+		end
+		
+		
+		printTable_cache[tostring(_t)] = true
+		if type(_t) ~= "table" then
+			print(indenty..(show_details and tostring(_t) or ""))
+			return
+		end
+		
+		
+		for key, val in pairs(_t) do
+			if type(val) == "table" then
+				print(indenty .. "[" .. key .. "] => " .. (show_details and tostring(_t) or "") .. "{")
+				sub_printTable(val, indent, indenty..indent)
+				print(indenty .. "}")
+			elseif type(val) == "string" then
+				print(indenty .. "[" .. key .. '] => "' .. val .. '"')
+			else
+				print(indenty .. "[" .. key .. "] => " .. tostring(val))
+			end
+		end
+	end
+	
+	if type(t) == "table" then
+		print((show_details and tostring(t)..": " or "").."{")
+		sub_printTable(t, "\t")
+		print("}")
+	else
+		sub_printTable(t, "\t")
+	end
 end
 
 --[[===================================================]]--
@@ -659,6 +714,7 @@ local VAF = {
 		--------------------------------------------------------------------------------
 		--------------------------------------------------------------------------------
 		
+		local first_ai_len = nil
 		local prev_ai = nil
 		local process_event_func = function(env, env_id, value, item_take, item_pos, item_len)
 			if not env then return end
@@ -666,8 +722,10 @@ local VAF = {
 			local ai_i = -1
 			
 			local _, take_name = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
-			if take_name == "VAF_SILENT_FILL" then
+			if take_name == "VAF_SILENT_FILL" and prev_ai then
 				local env_len = reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", 0, false)
+				local target_len = env_len + item_len
+				reaper.GetSetAutomationItemInfo(env, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
 				reaper.GetSetAutomationItemInfo(env, prev_ai, "D_LENGTH", env_len+item_len, true)
 				goto fuck_off -- could used `else` but this is funny, i was tired at some point cuz of this dum API.
 			end
@@ -678,8 +736,6 @@ local VAF = {
 				item_pos, item_len
 			)
 			
-			prev_ai = ai_i
-			
 			reaper.InsertEnvelopePointEx(
 				env,
 				ai_i,
@@ -687,6 +743,12 @@ local VAF = {
 				1, 1,
 				false, false
 			)
+			
+			if not first_ai_len then
+				first_ai_len = reaper.GetSetAutomationItemInfo(env, ai_i, "D_LENGTH", 0, false)
+			end
+			
+			prev_ai = ai_i
 			
 			::fuck_off::
 		end
@@ -914,6 +976,7 @@ function GUI:TAB_Flipper()
 	end
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local function Add_fx(name, presset_name, force_add)
 	force_add = force_add or false
@@ -1050,6 +1113,7 @@ function GUI:TAB_VFX()
 	end
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local function create_AI(isPooled)
 	isPooled = isPooled or false
@@ -1062,6 +1126,8 @@ local function create_AI(isPooled)
 	end
 
 	local env_pool_id = nil
+	local prev_ai = nil
+	local first_ai_len = nil
 	for i = 0, item_count-1 do
 		local item 			= reaper.GetSelectedMediaItem(0, i)
 		local item_track	= reaper.GetMediaItemTrack(item)
@@ -1072,22 +1138,38 @@ local function create_AI(isPooled)
 		local fx_null = VAF:AddVFX(item_track, "VAF: NULL", "Null.eel", false)
 		local env_null = reaper.GetFXEnvelope(item_track, fx_null, 0, true)
 		
-		-- For some reason when you create an AutoItem and then you try to use the same ID
-		-- the first AutoItem will not be pooled with everything else... So i try to hide it far away lol.
-		-- the API is stupid.
-		if isPooled and env_pool_id == nil then
-			env_pool_id = reaper.InsertAutomationItem(
-				env_null,
-				-1,
-				100000+item_pos, item_len
-			)
-		end
 		
-		local env_index = reaper.InsertAutomationItem(
-			env_null,
+		local item_take		= reaper.GetActiveTake(item)
+		local _, take_name	= reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
+		if take_name == "VAF_SILENT_FILL" and prev_ai then -- Silent fill skips
+			local env_len = reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_LENGTH", 0, false)
+			local target_len = env_len + item_len
+			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
+			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_LENGTH", env_len+item_len, true)
+		else -- AI creation
+			-- For some reason when you create an AutoItem and then you try to use the same ID
+			-- the first AutoItem will not be pooled with everything else... So i try to hide it far away lol.
+			-- the API is stupid.
+			if isPooled and env_pool_id == nil then
+				env_pool_id = reaper.InsertAutomationItem(
+					env_null,
+					1000000,
+					1000000+item_pos, item_len
+				)
+			end
+			
+			local env_index = reaper.InsertAutomationItem(
+				env_null,
 				isPooled and env_pool_id or -1,
-			item_pos, item_len
-		)
+				item_pos, item_len
+			)
+			
+			if not first_ai_len then
+				first_ai_len = reaper.GetSetAutomationItemInfo(env_null, env_index, "D_LENGTH", 0, false)
+			end
+			
+			prev_ai = env_index
+		end
 	end
 end
 
@@ -1154,7 +1236,11 @@ function GUI:TAB_Helpers()
 			end)
 		end
 		
-		if ImGui_ButtonWithHint(self.ctx, "Silent Extend to Next", 0.5, "") then
+		if ImGui_ButtonWithHint(self.ctx, "Silent Extend to Next", 0.5,
+		"Fills gaps between selected items with an continuation of the previous Item,\n"..
+			"the fill is silent and it's marked with \"VAF_SILENT_FILL\"\n"..
+			"for the script to understand that it needs to perform special skip actions for such items in order to perform well."
+		) then
 			UndoWrap("[VAF] Silent Fill to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
 				if item_count == 0 then return end
@@ -1173,9 +1259,8 @@ function GUI:TAB_Helpers()
 					prev_split = reaper.SplitMediaItem(item, item_start+item_len)
 					if prev_split then
 						reaper.SetMediaItemInfo_Value(prev_split, "D_VOL", 0)
+						reaper.SetMediaItemInfo_Value(prev_split, "B_UISEL", 0)
 						reaper.GetSetMediaItemTakeInfo_String(reaper.GetActiveTake(prev_split), "P_NAME", "VAF_SILENT_FILL", true)
-						item_count = item_count + 1
-						id = id + 1
 					end
 				end
 				
@@ -1183,7 +1268,9 @@ function GUI:TAB_Helpers()
 			end)
 		end
 		
-		if ImGui_ButtonWithHint(self.ctx, "Stretch to Next", 0.5, "") then
+		if ImGui_ButtonWithHint(self.ctx, "Stretch to Next", 0.5,
+			"Stretches each selected item to its next adjacent item in the track.")
+		then
 			UndoWrap("[VAF] Stretch to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
 				if item_count == 0 then
@@ -1214,11 +1301,49 @@ function GUI:TAB_Helpers()
 				reaper.UpdateArrange()
 			end)
 		end
-
+		
+		--------------------------------------------------------------------------------------------------------------------
+		ImGui.SeparatorText(self.ctx, "Media Items")
+		--------------------------------------------------------------------------------------------------------------------
+		
+		if ImGui_ButtonWithHint(self.ctx, "Delete Silent Fills", 0.5,
+				"Deletes selected items that has name \"VAF_SILENT_FILL\" in it, those are generated by \"Silent Extend to Next\"."
+		) then
+			UndoWrap("[VAF] Delete Silent Fills", function()
+				local item_count = reaper.CountSelectedMediaItems()
+				if item_count == 0 then
+					reaper.MB("No Media Items were selected!", "Error", 0)
+					return
+				end
+				
+				reaper.PreventUIRefresh(1)
+				
+				local items_to_del = {}
+				for id = 0, item_count - 1 do
+					local item		= reaper.GetSelectedMediaItem(0, id)
+					local item_take	= reaper.GetActiveTake(item)
+					local track		= reaper.GetMediaItemTrack(item)
+					
+					local retval, stringNeedBig = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
+					
+					if stringNeedBig == "VAF_SILENT_FILL" then
+						table.insert(items_to_del, {track = track, item = item})
+					end
+				end
+				
+				for _, item in pairs(items_to_del) do
+					reaper.DeleteTrackMediaItem(item.track, item.item)
+				end
+				
+				reaper.UpdateArrange()
+			end)
+		end
+		
 		ImGui.EndChild(self.ctx)
 	end
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function GUI:TAB_FAQ()
 	local fla = 0
@@ -1304,6 +1429,7 @@ function GUI:TAB_FAQ()
 	end
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function GUI:DrawUI()
 	local _
