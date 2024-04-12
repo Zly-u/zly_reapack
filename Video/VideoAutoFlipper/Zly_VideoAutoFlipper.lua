@@ -451,16 +451,13 @@ local GUI = {
 		--------------------------------------------
 		--------------------------------------------
 		
-		CHB_add_aspect_fixer		= true,
-		CHB_add_aspect_fixer_click	= true,
-		--------------------------------------------
-		CHB_add_cropper			= true,
-		CHB_add_cropper_click	= true,
-		--------------------------------------------
 		CHB_add_flips		= true,
 		CHB_add_flips_click = false,
 		--------------------------------------------
-		CHB_volume_to_opacity		= true,
+		CHB_add_aspect_fixer		= false,
+		CHB_add_aspect_fixer_click	= false,
+		--------------------------------------------
+		CHB_volume_to_opacity		= false,
 		CHB_volume_to_opacity_click = false,
 		
 		--------------------------------------------
@@ -867,12 +864,12 @@ function GUI:TAB_Flipper()
 				border_col
 		)
 	end
-
-	self.UI_Data.CHB_add_aspect_fixer_click, self.UI_Data.CHB_add_aspect_fixer =
-		ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer", self.UI_Data.CHB_add_aspect_fixer)
-
+	
 	self.UI_Data.CHB_add_flips_click, self.UI_Data.CHB_add_flips =
 		ImGui.Checkbox(self.ctx, "Add Flips", self.UI_Data.CHB_add_flips)
+	
+	self.UI_Data.CHB_add_aspect_fixer_click, self.UI_Data.CHB_add_aspect_fixer =
+		ImGui.Checkbox(self.ctx, "Add Aspectratio Fixer", self.UI_Data.CHB_add_aspect_fixer)
 
 	self.UI_Data.CHB_volume_to_opacity_click, self.UI_Data.CHB_volume_to_opacity =
 		ImGui.Checkbox(self.ctx, "Volume -> Opacity", self.UI_Data.CHB_volume_to_opacity)
@@ -1137,7 +1134,7 @@ function GUI:TAB_Helpers()
 			MultiLineStringConstructor(-1,
 				"Creates Pooled Automation Items in a dummy track.",
 				"",
-				"So every created Automation Item is mimicking each other."
+				"So every created Automation Item is the same instance."
 			)
 		) then
 			UndoWrap("[VAF] Create Pooled", function()
@@ -1149,7 +1146,7 @@ function GUI:TAB_Helpers()
 			MultiLineStringConstructor(-1,
 				"Creates Non-pooled Automation Items in a dummy track.",
 				"",
-				"So each envelope is unique."
+				"So every created envelope is unique."
 			)
 		) then
 			UndoWrap("[VAF] Create Non-Pooled", function()
@@ -1161,7 +1158,9 @@ function GUI:TAB_Helpers()
 		ImGui.SeparatorText(self.ctx, "Media Items")
 		--------------------------------------------------------------------------------------------------------------------
 
-		if ImGui_ButtonWithHint(self.ctx, "Extend to Next", 0.5, "") then
+		if ImGui_ButtonWithHint(self.ctx, "Extend to Next", 0.5,
+			"Extends selected Media Items to their next adjacent Media Items."
+		) then
 			UndoWrap("[VAF] Extend to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
 				if item_count == 0 then return end
@@ -1337,10 +1336,10 @@ function GUI:TAB_FAQ()
 		
 		----------------------------------------------------------------------------------------------------------------
 		
-		if ImGui.CollapsingHeader(self.ctx, "VFX: Chroma Key?") then
+		if ImGui.CollapsingHeader(self.ctx, "VFX: Chroma Key interfere?") then
 			ImGui.Text(self.ctx,
 				TextWrapper(
-					"Every VFX you add will be added before existing Chroma Key, so you don't have to do that manually.",
+					"Every VFX that you add will be added before existing Chroma Key, so you don't have to do that manually.",
 					max_line_len,
 					true
 				)
