@@ -431,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.0.7",
+	version = "1.1",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -575,12 +575,100 @@ local VAF = {
 	
 	preset_names = {},
 	presets		 = {},
-
+	
+	--------------------------------------------------------------------------------------------------------------
+	AI_IDs = {
+		start	= 17895697, -- 214748364/12
+		max_len = -1,
+		
+		ids = {
+			[0] = false,
+		},
+	},
+	
+	collectAutomationItemIDs = function(self)
+		self.AI_IDs.max_len = -1
+		self.AI_IDs.ids = {
+			[0] = false,
+		}
+	
+		for track_index = 0, reaper.CountTracks(0) - 1 do
+			local track = reaper.GetTrack(0, track_index)
+			local env_num = reaper.CountTrackEnvelopes(track)
+			for env_index = 0, env_num - 1 do
+				local env = reaper.GetTrackEnvelope(track, env_index)
+				local ai_num = reaper.CountAutomationItems(env)
+				for ai_index = 0, ai_num - 1 do
+					local ai_id = reaper.GetSetAutomationItemInfo(env, ai_index, "D_POOL_ID", 0, false) - self.AI_IDs.start
+					if ai_id < 0 then
+						goto ID_FETCH_CNTN
+					end
+					
+					if self.AI_IDs.ids[ai_id] then
+						goto ID_FETCH_CNTN
+					end
+					
+					if self.AI_IDs.max_len < ai_id then
+						self.AI_IDs.max_len = ai_id
+					end
+					
+					self.AI_IDs.ids[ai_id] = true
+					
+					::ID_FETCH_CNTN::
+				end
+			end
+		end
+	end,
+	
+	findAvailableID_AndMarkIt = function(self)
+		for i = 0, self.AI_IDs.max_len + 1 do
+			if not self.AI_IDs.ids[i] then
+				if i > self.AI_IDs.max_len then
+					self.AI_IDs.max_len = i
+				end
+				
+				self.AI_IDs.ids[i] = true
+				
+				return i + self.AI_IDs.start
+			end
+		end
+	end,
+	
+	findNAvailableIDs_AndMarkThem = function(self, n)
+		local found_ids = {}
+		
+		for i = 0, self.AI_IDs.max_len + n do
+			if not self.AI_IDs.ids[i] then
+				if i > self.AI_IDs.max_len then
+					self.AI_IDs.max_len = i
+				end
+				
+				table.insert(found_ids, i + self.AI_IDs.start)
+				
+				n = n - 1
+				if n == 0 then
+					break
+				end
+			end
+		end
+		
+		if n ~= 0 then
+			return nil
+		end
+		
+		for _, id in pairs(found_ids) do
+			self.AI_IDs.ids[id - self.AI_IDs.start] = true
+		end
+		
+		return found_ids
+	end,
+	
+	--------------------------------------------------------------------------------------------------------------
+	
 	AddPreset = function(self, name, func)
 		table.insert(self.preset_names, name)
 		self.presets[name] = func
 	end,
-
 
 	PreviewPresset = function(self, preset_index, index)
 		local found_preset = self.presets[self.preset_names[preset_index]]
@@ -695,8 +783,13 @@ local VAF = {
 		
 		local flip_index = -1
 		local prev_pitch = nil
-		-- TODO: Make this collision proof...
-		local ID_Offset = math.random(10000, 696969)
+		local IDs = {
+			h = {},
+			v = {},
+			vol = {},
+		}
+		
+		self:collectAutomationItemIDs()
 		for index = 0, items_count - 1 do
 			local item		= reaper.GetSelectedMediaItem(0, index)
 			local item_take = reaper.GetActiveTake(item)
@@ -722,12 +815,38 @@ local VAF = {
 			
 			local evaluated_flips = found_preset(flip_index, item)
 			
-			-- TODO: Fix this mess of IDs...
-			process_event_func(env_horiz_flip,	math.max(evaluated_flips.h or 0, 0)+ID_Offset, math.max(evaluated_flips.h or 0, 0), item_take, item_pos, item_len)
-			process_event_func(env_vert_flip,	math.max(evaluated_flips.v or 0, 0)+ID_Offset, math.max(evaluated_flips.v or 0, 0), item_take, item_pos, item_len)
-			local item_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
-			-- TODO: Fix Vol IDs for each of the newly generated envelopes, like, make them into batches somehow idk.
-			process_event_func(env_opacity,		math.floor(item_vol * 255)+ID_Offset, item_vol, item_take, item_pos, item_len)
+			if evaluated_flips.h ~= nil and #IDs.h == 0 then
+				IDs.h = self:findNAvailableIDs_AndMarkThem(2)
+			end
+			
+			if evaluated_flips.v ~= nil and #IDs.v == 0 then
+				IDs.v = self:findNAvailableIDs_AndMarkThem(2)
+			end
+			
+			if env_opacity ~= nil and #IDs.vol == 0 then
+				IDs.vol = self:findNAvailableIDs_AndMarkThem(256)
+			end
+			
+			process_event_func(
+				env_horiz_flip,
+				IDs.h[math.max(evaluated_flips.h or 0, 0)+1], math.max(evaluated_flips.h or 0, 0),
+				item_take, item_pos, item_len
+			)
+			
+			process_event_func(
+				env_vert_flip,
+				IDs.v[math.max(evaluated_flips.v or 0, 0)+1], math.max(evaluated_flips.v or 0, 0),
+				item_take, item_pos, item_len
+			)
+			
+			if env_opacity then
+				local item_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
+				process_event_func(
+					env_opacity,
+					IDs.vol[math.floor(item_vol * 255) +1], item_vol,
+					item_take, item_pos, item_len
+				)
+			end
 			
 			GUI.UI_Data.flip_count = GUI.UI_Data.flip_count + 1
 		end
@@ -1065,7 +1184,9 @@ local function create_AI(isPooled)
 		return
 	end
 
-	local env_pool_id = nil
+	-- I hate reaper not just generating new IDs on its own, i dont know how to track this kind of shti without applying stupid workarounds....
+	VAF:collectAutomationItemIDs()
+	local env_pool_id = VAF:findAvailableID_AndMarkIt()
 	local prev_ai = nil
 	local first_ai_len = nil
 	for i = 0, item_count-1 do
@@ -1087,24 +1208,15 @@ local function create_AI(isPooled)
 			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_LENGTH", env_len+item_len, true)
 			reaper.GetSetAutomationItemInfo(env_null, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
 		else -- AI creation
-			-- For some reason when you create an AutoItem and then you try to use the same ID
-			-- the first AutoItem will not be pooled with everything else... So i try to hide it far away lol.
-			-- the API is stupid.
-			if isPooled and env_pool_id == nil then
-				env_pool_id = reaper.InsertAutomationItem(
-					env_null,
-					1000000,
-					1000000+item_pos, item_len
-				)
-			end
-			
 			local env_index = reaper.InsertAutomationItem(
 				env_null,
 				isPooled and env_pool_id or -1,
 				item_pos, item_len
 			)
 			
-			if not first_ai_len then
+			-- if not pooled then it will keep saving prev item's len,
+			-- needed for skipping `VAF_SILENT_FILL` items.
+			if not first_ai_len or not isPooled then
 				first_ai_len = reaper.GetSetAutomationItemInfo(env_null, env_index, "D_LENGTH", 0, false)
 			else
 				reaper.GetSetAutomationItemInfo(env_null, env_index, "D_PLAYRATE", first_ai_len/item_len, true)
