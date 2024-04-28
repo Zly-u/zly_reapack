@@ -746,20 +746,20 @@ local VAF = {
 		
 		local first_ai_len = nil
 		local prev_ai = nil
-		local process_event_func = function(env_track, env_id, value, item_take, item_pos, item_len)
+		local process_event_func = function(env_track, env_id, value, item_take, item_pos, target_env_len)
 			if not env_track then return end
 			
 			local _, take_name = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
 			if take_name == "VAF_SILENT_FILL" and prev_ai then
 				local prev_env_len = reaper.GetSetAutomationItemInfo(env_track, prev_ai, "D_LENGTH", 0, false)
-				local target_len = prev_env_len + item_len
+				local target_len = prev_env_len + target_env_len
 				reaper.GetSetAutomationItemInfo(env_track, prev_ai, "D_LENGTH",   target_len, true)
 				reaper.GetSetAutomationItemInfo(env_track, prev_ai, "D_PLAYRATE", first_ai_len/target_len, true)
 			else
 				local ai_i = reaper.InsertAutomationItem(
 					env_track,
 					env_id,
-					item_pos, first_ai_len and first_ai_len or item_len
+					item_pos, first_ai_len and first_ai_len or target_env_len
 				)
 				
 				reaper.InsertEnvelopePointEx(
@@ -773,8 +773,8 @@ local VAF = {
 				if not first_ai_len then
 					first_ai_len = reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_LENGTH", 0, false)
 				else
-					reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_LENGTH", item_len, true)
-					reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_PLAYRATE", first_ai_len/item_len, true)
+					reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_LENGTH", target_env_len, true)
+					reaper.GetSetAutomationItemInfo(env_track, ai_i, "D_PLAYRATE", first_ai_len/ target_env_len, true)
 				end
 				
 				prev_ai = ai_i
@@ -795,6 +795,14 @@ local VAF = {
 			local item_take = reaper.GetActiveTake(item)
 			local item_pos	= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
 			local item_len	= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+			
+			local next_item		= reaper.GetSelectedMediaItem(0, index+1)
+			local next_item_pos
+			if next_item then
+				next_item_pos = reaper.GetMediaItemInfo_Value(next_item, "D_POSITION")
+			else
+				next_item_pos = item_pos + item_len
+			end
 			
 			-- Flip only upon pitch change
 			local _, take_name = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
@@ -830,21 +838,21 @@ local VAF = {
 			process_event_func(
 				env_horiz_flip,
 				IDs.h[math.max(evaluated_flips.h or 0, 0)+1], math.max(evaluated_flips.h or 0, 0),
-				item_take, item_pos, item_len
+				item_take, item_pos, math.abs(item_pos-next_item_pos)
 			)
 			
 			process_event_func(
 				env_vert_flip,
 				IDs.v[math.max(evaluated_flips.v or 0, 0)+1], math.max(evaluated_flips.v or 0, 0),
-				item_take, item_pos, item_len
+				item_take, item_pos, math.abs(item_pos-next_item_pos)
 			)
 			
 			if env_opacity then
 				local item_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
 				process_event_func(
 					env_opacity,
-					IDs.vol[math.floor(item_vol * 255) +1], item_vol,
-					item_take, item_pos, item_len
+					IDs.vol[math.floor(item_vol * 255)+1], item_vol,
+					item_take, item_pos, math.abs(item_pos-next_item_pos)
 				)
 			end
 			
