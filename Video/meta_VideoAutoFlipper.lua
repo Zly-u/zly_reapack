@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.1.0
+@version 1.1.1
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -22,6 +22,6 @@
 	- Has a tab for Helper functions.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Implemented Automation Items Pooling logic. Made some logic for safe pooling for generated Automation Items since reaper doesn't handle this in the API at all.
-	- Changed `Cropper VFX` to be able to crop entire composition from one of the sides.
+	- Adapted `ImGui.BeginChild` to new version of ReaImGui to prevent crashes.
+	- Made it so Flip Envelopes stretch to the start of the next items now, so potentially making it more practical for editing.
 --]]
