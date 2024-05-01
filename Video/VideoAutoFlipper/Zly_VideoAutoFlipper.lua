@@ -1065,6 +1065,8 @@ local function Add_fx(name, presset_name, force_add)
 end
 
 function GUI:TAB_VFX()
+	local child_flags = ImGui.ChildFlags_None()
+	
 	ImGui_AlignedText(self.ctx, "Select tracks you want to", 0.5)
 	ImGui_AlignedText(self.ctx, "apply any FX to.", 0.5)
 
@@ -1073,7 +1075,7 @@ function GUI:TAB_VFX()
 	ImGui_AlignedText(self.ctx, "Hover over each button to", 0.5)
 	ImGui_AlignedText(self.ctx, "get desciption for them.", 0.5)
 
-	if ImGui.BeginChild(self.ctx, "VFX", 0, 0, true, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
+	if ImGui.BeginChild(self.ctx, "VFX", 0, 0, child_flags, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
 		if ImGui.CollapsingHeader(self.ctx, "TRANSFORM") then
 			if ImGui_ButtonWithHint(self.ctx, "Position Offset", 0.5,
 					"Sets the Video's position in percentage."
@@ -1237,6 +1239,8 @@ end
 
 
 function GUI:TAB_Helpers()
+	local child_flags = ImGui.ChildFlags_None()
+	
 	ImGui_AlignedText(self.ctx, "Select items/tracks you want to", 0.5)
 	ImGui_AlignedText(self.ctx, "apply any of the helpers to.", 0.5)
 
@@ -1245,7 +1249,7 @@ function GUI:TAB_Helpers()
 	ImGui_AlignedText(self.ctx, "Hover over each button to", 0.5)
 	ImGui_AlignedText(self.ctx, "get desciption for them.", 0.5)
 
-	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
+	if ImGui.BeginChild(self.ctx, "AI", 0, 0, child_flags, ImGui.WindowFlags_AlwaysVerticalScrollbar()) then
 		--------------------------------------------------------------------------------------------------------------------
 		ImGui.SeparatorText(self.ctx, "Automation Items")
 		--------------------------------------------------------------------------------------------------------------------
@@ -1410,10 +1414,13 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function GUI:TAB_FAQ()
-	local fla = 0
+	local window_flags = 0
 		| ImGui.WindowFlags_NoResize()
 		| ImGui.WindowFlags_AlwaysVerticalScrollbar()
-	if ImGui.BeginChild(self.ctx, "AI", 0, 0, true, fla) then
+	
+	local child_flags = ImGui.ChildFlags_None()
+	
+	if ImGui.BeginChild(self.ctx, "AI", 0, 0, child_flags, window_flags) then
 		local max_line_len = 36
 
 		if ImGui.CollapsingHeader(self.ctx, "Why Chroma Key thing?") then
