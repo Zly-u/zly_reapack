@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.1.1
+@version 1.1.2
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -19,9 +19,11 @@
 	- Has additional settings for the flipping.
 	- Flips preview in the GUI.
 	- Has a tab for VFX chains for ease of making simple but yet presentable and easilty animatable visuals in Reaper.
-	- Has a tab for Helper functions.
+	- Has a tab for Helper functions to assist with video animation and such.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Adapted `ImGui.BeginChild` to new version of ReaImGui to prevent crashes.
-	- Made it so Flip Envelopes stretch to the start of the next items now, so potentially making it more practical for editing.
+	- Changed VFX Effects add behavior: Chroma-Key is being added, if none existed already, when applying any of the VFX effects.
+	- Opacity now adds after Chroma-key, so no more weird unexpected color behavior because of the wrong effects order.
+	- Changed `Scale` effect to have filtering off by default.
+	- Some additional FAQ pages.
 --]]

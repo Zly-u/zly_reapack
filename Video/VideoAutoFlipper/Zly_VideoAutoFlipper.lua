@@ -431,7 +431,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.1",
+	version = "1.1.2",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -685,13 +685,19 @@ local VAF = {
 
 
 	AddVFX = function(self, track, name, presset_name, force_add)
-		local fx_chroma = reaper.TrackFX_GetByName(track, "VAF: Chroma-key", false)
-		local fx = reaper.TrackFX_GetByName(track, name, false)
+		local fx_chroma  = reaper.TrackFX_GetByName(track, "VAF: Chroma-key", false)
+		local fx		 = reaper.TrackFX_GetByName(track, name, false)
+		
 		if fx == -1 or force_add then
-			fx = reaper.TrackFX_AddByName(track, "Video processor", 0, fx_chroma ~= -1 and -1000-fx_chroma or 1)
+			if presset_name ~= "Opacity.eel" then
+				fx = reaper.TrackFX_AddByName(track, "Video processor", 0, fx_chroma ~= -1 and -1000-fx_chroma or 1)
+			else
+				fx = reaper.TrackFX_AddByName(track, "Video processor", 0, fx_chroma ~= -1 and fx_chroma+1 or 1)
+			end
 			reaper.TrackFX_SetNamedConfigParm(track, fx, "renamed_name", name)
 			reaper.TrackFX_SetNamedConfigParm(track, fx, "VIDEO_CODE", self.VP_Presets[presset_name])
 		end
+		
 		return fx
 	end,
 
@@ -1056,11 +1062,17 @@ local function Add_fx(name, presset_name, force_add)
 	end
 
 	for i = 0, track_count-1 do
+		local track = reaper.GetSelectedTrack(0, i)
 		VAF:AddVFX(
-			reaper.GetSelectedTrack(0, i),
+			track,
 			name, presset_name,
 			force_add
 		)
+		
+		-- Finilizing with Chroma-key
+		if presset_name ~= "Opacity.eel" then
+			local _ = VAF:AddVFX(track, "VAF: Chroma-key", "Chroma.eel")
+		end
 	end
 end
 
@@ -1422,7 +1434,52 @@ function GUI:TAB_FAQ()
 	
 	if ImGui.BeginChild(self.ctx, "AI", 0, 0, child_flags, window_flags) then
 		local max_line_len = 36
-
+		
+		if ImGui.CollapsingHeader(self.ctx, "What is this for?") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"This script is for SIMPLE video editing in Reaper with easy functionality and relatively flexible capabilities.",
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"This script is NOT a replacement for any already existing video editing programs. It's made solely just for myself and for people who want to quickly sketch/make something simple out right away in Reaper.",
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"This script, with its techniques, will take a bit of getting used to for sure, but once you do then it will become a nice little tool for simple presentable stuff, in my opinion.",
+					max_line_len,
+					true
+				)
+			)
+		end
+		
+		----------------------------------------------------------------------------------------------------------------
+		
+		if ImGui.CollapsingHeader(self.ctx, "Why does this exist?") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"As a proof of concept, made it for fun and mostly for myself.",
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"I tried my best to make it as intuitive as possible, UI/UX is hard.",
+					max_line_len,
+					true
+				)
+			)
+		end
+		
+		----------------------------------------------------------------------------------------------------------------
+		
 		if ImGui.CollapsingHeader(self.ctx, "Why Chroma Key thing?") then
 			ImGui.Text(self.ctx,
 					TextWrapper(
@@ -1459,11 +1516,71 @@ function GUI:TAB_FAQ()
 							true
 					)
 			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"This is the only way I figured how to do effects compositing on top of each other with relative ease...",
+					max_line_len,
+					true
+				)
+			)
 		end
 		
 		----------------------------------------------------------------------------------------------------------------
 		
-		if ImGui.CollapsingHeader(self.ctx, "VFX: Chroma Key interfere?") then
+		if ImGui.CollapsingHeader(self.ctx, "Opacity makes the image blue.") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"You need to use the Opacity effect AFTER Chroma-key in order for it to work correctly.",
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"I tried to automate this effect's placement so there are potentially less confusions to happen.",
+					max_line_len,
+					true
+				)
+			)
+		end
+		
+		----------------------------------------------------------------------------------------------------------------
+		
+		if ImGui.CollapsingHeader(self.ctx, "Blue/Green border appears.") then
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"It's essentailly a Chroma-key's keying error, happens when the edges of the videos getting smoothed.",
+					
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"You can get rid of it by disabling flitering in some of the effects.",
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"You can try to tweak the Chroma-Key to make it work in such scenarios, I couldn't figure it out myself.",
+					max_line_len,
+					true
+				)
+			)
+			ImGui.Text(self.ctx,
+				TextWrapper(
+					"And if you do figure it out then Please tell me about your settings, or a better way of utilising Chroma-key, I will add those changes into this script's presets.",
+					max_line_len,
+					true
+				)
+			)
+		end
+		
+		----------------------------------------------------------------------------------------------------------------
+		
+		if ImGui.CollapsingHeader(self.ctx, "VFX: Will Chroma Key interfere?") then
 			ImGui.Text(self.ctx,
 				TextWrapper(
 					"Every VFX that you add will be added before existing Chroma Key, so you don't have to do that manually.",

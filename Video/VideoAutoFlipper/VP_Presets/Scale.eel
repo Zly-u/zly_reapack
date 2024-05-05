@@ -3,7 +3,7 @@
 //@param1:p_scale 'Scale' 1 0.01 2 1
 //@param2:p_scale_x 'X Scale' 1 0.01 2 1
 //@param3:p_scale_y 'Y Scale' 1 0.01 2 1
-//@param4:filter 'filter' 1 0 1 0.5 1
+//@param4:filter 'filter' 0 0 1 0.5 1
 
 //@param6:p_bg_clr 'green/blue bg' 1 0 1 0.1 1
 
