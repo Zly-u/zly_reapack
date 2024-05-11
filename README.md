@@ -3,7 +3,7 @@
 # About
 A repo of scripts that I have made for simplifying and automating my personal Music/YTPMV work processes.
 
-Each script's folder should contain a ReadMe describing what each script does.
+Each script's folder should contain a ReadMe describing what each script does, if it doesn't please poke me, I easily forget to do such things.
 
 
 # Adding the Repo into [ReaPack](https://reapack.com/):
