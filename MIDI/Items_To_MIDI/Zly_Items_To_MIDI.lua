@@ -11,8 +11,8 @@ function main()
 	local track			= reaper.GetMediaItemTrack(first_item)
 	local _, track_name = reaper.GetTrackName(track)
 	local track_index	= reaper.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")
-	reaper.InsertTrackAtIndex(track_index-1, true)
-	local new_midi_track = reaper.GetTrack(0, track_index-1)
+	reaper.InsertTrackAtIndex(track_index+1, true)
+	local new_midi_track = reaper.GetTrack(0, track_index+1)
 	reaper.GetSetMediaTrackInfo_String(new_midi_track, "P_NAME", track_name..(track_name ~= "" and "_" or "").."MIDI", true)
 
 	-- Create MIDI item
@@ -34,14 +34,14 @@ function main()
 
 		local take			= reaper.GetActiveTake(item)
 		local take_pitch	= reaper.GetMediaItemTakeInfo_Value(take, "D_PITCH")+63
-		local take_volume	= reaper.GetMediaItemTakeInfo_Value(take, "D_VOL")*127
+		local take_volume	= reaper.GetMediaItemTakeInfo_Value(take, "D_VOL")*127 or 0
 		take_pitch = math.min(math.max(take_pitch, 0), 127)
-
+		
 		reaper.MIDI_InsertNote(
 			midi_take, false, false, 												-- MediaItem_Take take, boolean selected, boolean muted,
 			reaper.MIDI_GetPPQPosFromProjTime(midi_take, item_start),				-- number startppqpos,
 			reaper.MIDI_GetPPQPosFromProjTime(midi_take, item_start+item_duration),	-- number endppqpos,
-			0, take_pitch, take_volume,												-- integer chan, integer pitch, integer vel
+			0, math.floor(take_pitch), math.floor(take_volume),												-- integer chan, integer pitch, integer vel
 			false																	-- optional boolean noSortIn
 		)
 
