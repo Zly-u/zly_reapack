@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Zly's Reapack Repo" commit="0752ac6e7549c8aa53018024f2718b25b0258c62">
+<index version="1" name="Zly's Reapack Repo" commit="30e635ab83cbc92ddb0ec5b4740fd33c48b199cb">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -53,6 +53,10 @@
       <version name="1.0.1" author="Zly" time="2024-05-25T14:47:16Z">
         <changelog><![CDATA[- Fixed the script sometimes providing non integer values to note creation functions.]]></changelog>
         <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/zly_reapack/raw/0752ac6e7549c8aa53018024f2718b25b0258c62/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
+      </version>
+      <version name="1.0.2" author="Zly" time="2024-05-25T19:53:32Z">
+        <changelog><![CDATA[- Fixed weird track creation for generated MIDI.]]></changelog>
+        <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/zly_reapack/raw/30e635ab83cbc92ddb0ec5b4740fd33c48b199cb/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
       </version>
     </reapack>
     <reapack name="meta_MIDI_To_Items.lua" type="script" desc="MIDI To Items Converter">
