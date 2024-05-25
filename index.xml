@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Zly's Reapack Repo" commit="ee339a1074cb2cde8056a010f11516a122f6a942">
+<index version="1" name="Zly's Reapack Repo" commit="0752ac6e7549c8aa53018024f2718b25b0258c62">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -49,6 +49,10 @@
       <version name="1.0" author="Zly" time="2024-02-13T17:06:07Z">
         <changelog><![CDATA[- Init]]></changelog>
         <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
+      </version>
+      <version name="1.0.1" author="Zly" time="2024-05-25T14:47:16Z">
+        <changelog><![CDATA[- Fixed the script sometimes providing non integer values to note creation functions.]]></changelog>
+        <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/zly_reapack/raw/0752ac6e7549c8aa53018024f2718b25b0258c62/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
       </version>
     </reapack>
     <reapack name="meta_MIDI_To_Items.lua" type="script" desc="MIDI To Items Converter">
@@ -453,7 +457,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Zly's ReaPack Repository\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 About\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A repo of scripts that I have made for simplifying and automating my personal Music/YTPMV work processes.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Each script's folder should contain a ReadMe describing what each script does.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Each script's folder should contain a ReadMe describing what each script does, if it doesn't please poke me, I easily forget to do such things.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Adding the Repo into {\field{\*\fldinst{HYPERLINK "https://reapack.com/"}}{\fldrslt{\ul
 ReaPack
 }}}
