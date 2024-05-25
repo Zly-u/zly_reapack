@@ -11,8 +11,8 @@ function main()
 	local track			= reaper.GetMediaItemTrack(first_item)
 	local _, track_name = reaper.GetTrackName(track)
 	local track_index	= reaper.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")
-	reaper.InsertTrackAtIndex(track_index+1, true)
-	local new_midi_track = reaper.GetTrack(0, track_index+1)
+	reaper.InsertTrackAtIndex(track_index, true)
+	local new_midi_track = reaper.GetTrack(0, track_index)
 	reaper.GetSetMediaTrackInfo_String(new_midi_track, "P_NAME", track_name..(track_name ~= "" and "_" or "").."MIDI", true)
 
 	-- Create MIDI item
