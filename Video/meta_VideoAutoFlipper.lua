@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.2.0
+@version 1.2.1
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
