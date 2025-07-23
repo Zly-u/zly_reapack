@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.1.2
+@version 1.2.0
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -22,8 +22,6 @@
 	- Has a tab for Helper functions to assist with video animation and such.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Changed VFX Effects add behavior: Chroma-Key is being added, if none existed already, when applying any of the VFX effects.
-	- Opacity now adds after Chroma-key, so no more weird unexpected color behavior because of the wrong effects order.
-	- Changed `Scale` effect to have filtering off by default.
-	- Some additional FAQ pages.
+	- Changed some logic for helper functions to be more reliable.
+	- Added two more helpers: "Extend Last Frame to Next" and "Delete Last Frame Fills".
 --]]

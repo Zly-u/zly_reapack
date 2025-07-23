@@ -382,6 +382,35 @@ local function ImGui_ButtonWithHint(ctx, button_text, alignment, desc)
 	return rv
 end
 
+local DeleteSelectedItemsByName = function(name_to_search)
+	local item_count = reaper.CountSelectedMediaItems()
+		if item_count == 0 then
+			reaper.MB("No Media Items were selected!", "Error", 0)
+			return
+		end
+
+		reaper.PreventUIRefresh(1)
+
+		local items_to_del = {}
+		for id = 0, item_count - 1 do
+			local item		= reaper.GetSelectedMediaItem(0, id)
+			local item_take	= reaper.GetActiveTake(item)
+			local track		= reaper.GetMediaItemTrack(item)
+
+			local retval, stringNeedBig = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
+
+			if stringNeedBig == name_to_search then
+				table.insert(items_to_del, {track = track, item = item})
+			end
+		end
+
+		for _, item in pairs(items_to_del) do
+			reaper.DeleteTrackMediaItem(item.track, item.item)
+		end
+
+		reaper.UpdateArrange()
+end
+
 --[[===================================================]]--
 --[[===================================================]]--
 --[[===================================================]]--
@@ -431,7 +460,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.1.2",
+	version = "1.2.0",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -1294,6 +1323,49 @@ function GUI:TAB_Helpers()
 		ImGui.SeparatorText(self.ctx, "Media Items")
 		--------------------------------------------------------------------------------------------------------------------
 
+		if ImGui_ButtonWithHint(self.ctx, "Extend Last Frame to Next", 0.5,
+			"Extends selected Media Items last frames to their next adjacent Media Items."
+		) then
+			UndoWrap("[VAF] Extend Last Frame to Next", function()
+				local item_count = reaper.CountSelectedMediaItems()
+				if item_count == 0 then return end
+
+				local selected_items = {}
+				for id = 0, item_count-1 do
+					local item = reaper.GetSelectedMediaItem(0, id)
+					if item then
+						table.insert(selected_items, item)
+					end
+				end
+
+				if #selected_items == 0 then
+					return
+				end
+
+				reaper.PreventUIRefresh(1)
+				for id = 1, #selected_items-1 do
+					local item      = selected_items[id]
+					local next_item = selected_items[id + 1]
+
+					local item_start      = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+					local item_duration   = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+					local next_item_start = reaper.GetMediaItemInfo_Value(next_item, "D_POSITION")
+
+					local cut_position    = item_start + item_duration * 0.99
+					local new_cut_item    = reaper.SplitMediaItem(item, cut_position)
+
+					if new_cut_item then
+						local target_duration = next_item_start - cut_position
+
+						reaper.GetSetMediaItemTakeInfo_String(reaper.GetActiveTake(new_cut_item), "P_NAME", "VAF_LAST_FRAME_EXTEND", true)
+						reaper.SetMediaItemTakeInfo_Value(reaper.GetActiveTake(new_cut_item), "D_PLAYRATE", 0)
+						reaper.SetMediaItemLength(new_cut_item, target_duration, false)
+					end
+				end
+				reaper.UpdateArrange()
+			end)
+		end
+
 		if ImGui_ButtonWithHint(self.ctx, "Extend to Next", 0.5,
 			"Extends selected Media Items to their next adjacent Media Items."
 		) then
@@ -1301,9 +1373,22 @@ function GUI:TAB_Helpers()
 				local item_count = reaper.CountSelectedMediaItems()
 				if item_count == 0 then return end
 
-				for id = 0, item_count - 2 do
-					local item		= reaper.GetSelectedMediaItem(0, id)
-					local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+				local selected_items = {}
+				for id = 0, item_count-1 do
+					local item = reaper.GetSelectedMediaItem(0, id)
+					if item then
+						table.insert(selected_items, item)
+					end
+				end
+
+				if #selected_items == 0 then
+					return
+				end
+
+				reaper.PreventUIRefresh(1)
+				for id = 1, #selected_items - 1 do
+					local item		= selected_items[id]
+					local next_item	= selected_items[id + 1]
 
 					local item_start		= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
 					local next_item_start	= reaper.GetMediaItemInfo_Value(next_item, "D_POSITION")
@@ -1324,11 +1409,23 @@ function GUI:TAB_Helpers()
 			UndoWrap("[VAF] Silent Fill to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
 				if item_count == 0 then return end
+
+				local selected_items = {}
+				for id = 0, item_count-1 do
+					local item = reaper.GetSelectedMediaItem(0, id)
+					if item then
+						table.insert(selected_items, item)
+					end
+				end
+
+				if #selected_items == 0 then
+					return
+				end
 				
 				local prev_split = nil
-				for id = 0, item_count - 2 do
-					local item		= reaper.GetSelectedMediaItem(0, id)
-					local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+				for id = 1, #selected_items - 1 do
+					local item      = selected_items[id]
+					local next_item = selected_items[id + 1]
 					
 					local item_start		= reaper.GetMediaItemInfo_Value(item,		"D_POSITION")
 					local item_len			= reaper.GetMediaItemInfo_Value(item,		"D_LENGTH")
@@ -1353,16 +1450,25 @@ function GUI:TAB_Helpers()
 		then
 			UndoWrap("[VAF] Stretch to Next", function()
 				local item_count = reaper.CountSelectedMediaItems()
-				if item_count == 0 then
-					reaper.MB("No Media Items were selected!", "Error", 0)
+				if item_count == 0 then return end
+
+				local selected_items = {}
+				for id = 0, item_count-1 do
+					local item = reaper.GetSelectedMediaItem(0, id)
+					if item then
+						table.insert(selected_items, item)
+					end
+				end
+
+				if #selected_items == 0 then
 					return
 				end
 
 				reaper.PreventUIRefresh(1)
 
-				for id = 0, item_count - 2 do
-					local item		= reaper.GetSelectedMediaItem(0, id)
-					local next_item	= reaper.GetSelectedMediaItem(0, id+1)
+				for id = 1, #selected_items - 1 do
+					local item      = selected_items[id]
+					local next_item = selected_items[id + 1]
 
 					local item_start		= reaper.GetMediaItemInfo_Value(item, "D_POSITION")
 					local item_duration		= reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
@@ -1385,40 +1491,23 @@ function GUI:TAB_Helpers()
 		--------------------------------------------------------------------------------------------------------------------
 		ImGui.SeparatorText(self.ctx, "Media Items")
 		--------------------------------------------------------------------------------------------------------------------
-		
+
 		if ImGui_ButtonWithHint(self.ctx, "Delete Silent Fills", 0.5,
 				"Deletes selected items that has name \"VAF_SILENT_FILL\" in it, those are generated by \"Silent Extend to Next\"."
 		) then
 			UndoWrap("[VAF] Delete Silent Fills", function()
-				local item_count = reaper.CountSelectedMediaItems()
-				if item_count == 0 then
-					reaper.MB("No Media Items were selected!", "Error", 0)
-					return
-				end
-				
-				reaper.PreventUIRefresh(1)
-				
-				local items_to_del = {}
-				for id = 0, item_count - 1 do
-					local item		= reaper.GetSelectedMediaItem(0, id)
-					local item_take	= reaper.GetActiveTake(item)
-					local track		= reaper.GetMediaItemTrack(item)
-					
-					local retval, stringNeedBig = reaper.GetSetMediaItemTakeInfo_String(item_take, "P_NAME", "", false)
-					
-					if stringNeedBig == "VAF_SILENT_FILL" then
-						table.insert(items_to_del, {track = track, item = item})
-					end
-				end
-				
-				for _, item in pairs(items_to_del) do
-					reaper.DeleteTrackMediaItem(item.track, item.item)
-				end
-				
-				reaper.UpdateArrange()
+				DeleteSelectedItemsByName("VAF_SILENT_FILL")
 			end)
 		end
-		
+
+		if ImGui_ButtonWithHint(self.ctx, "Delete Last Frame Fills", 0.5,
+				"Deletes selected items that has name \"VAF_LAST_FRAME_EXTEND\" in it, those are generated by \"Extend Last Frame to Next\"."
+		) then
+			UndoWrap("[VAF] Delete Last Frame Fills", function()
+				DeleteSelectedItemsByName("VAF_LAST_FRAME_EXTEND")
+			end)
+		end
+
 		ImGui.EndChild(self.ctx)
 	end
 end
