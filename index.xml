@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Zly's Reapack Repo" commit="30e635ab83cbc92ddb0ec5b4740fd33c48b199cb">
+<index version="1" name="Zly's Reapack Repo" commit="df243436edb26b0003763db726a588a1f8e74068">
   <category name="Items Editing">
     <reapack name="meta_ExtendToNextItem.lua" type="script" desc="Extend To Next Item">
       <metadata>
@@ -14,7 +14,7 @@
       </metadata>
       <version name="1.0" author="Zly" time="2024-02-11T15:22:39Z">
         <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="ExtendToNextItem/Zly_ExtendToNextItem.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f4ce00c661dc5f842f45a562d03f91445946dbfb/Items%20Editing/ExtendToNextItem/Zly_ExtendToNextItem.lua</source>
+        <source main="main" file="ExtendToNextItem/Zly_ExtendToNextItem.lua">https://github.com/Zly-u/zly_reapack/raw/f4ce00c661dc5f842f45a562d03f91445946dbfb/Items%20Editing/ExtendToNextItem/Zly_ExtendToNextItem.lua</source>
       </version>
     </reapack>
     <reapack name="meta_StretchToNextItem.lua" type="script" desc="Stretch To Next Item">
@@ -30,7 +30,7 @@
       </metadata>
       <version name="1.0" author="Zly" time="2024-02-11T15:22:39Z">
         <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="StretchToNextItem/Zly_StretchToNextItem.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f4ce00c661dc5f842f45a562d03f91445946dbfb/Items%20Editing/StretchToNextItem/Zly_StretchToNextItem.lua</source>
+        <source main="main" file="StretchToNextItem/Zly_StretchToNextItem.lua">https://github.com/Zly-u/zly_reapack/raw/f4ce00c661dc5f842f45a562d03f91445946dbfb/Items%20Editing/StretchToNextItem/Zly_StretchToNextItem.lua</source>
       </version>
     </reapack>
   </category>
@@ -48,7 +48,7 @@
       </metadata>
       <version name="1.0" author="Zly" time="2024-02-13T17:06:07Z">
         <changelog><![CDATA[- Init]]></changelog>
-        <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
+        <source main="main" file="Items_To_MIDI/Zly_Items_To_MIDI.lua">https://github.com/Zly-u/zly_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/Items_To_MIDI/Zly_Items_To_MIDI.lua</source>
       </version>
       <version name="1.0.1" author="Zly" time="2024-05-25T14:47:16Z">
         <changelog><![CDATA[- Fixed the script sometimes providing non integer values to note creation functions.]]></changelog>
@@ -84,29 +84,37 @@
       <version name="1.2.2" author="Zly" time="2024-02-13T17:06:07Z">
         <changelog><![CDATA[- Fixed sorting when some channels are missing.
 - Fixed coloring based on the amount of channels.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/a2482b3917d51a4b317b6d22958cc6aac48d2cf8/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
-      <version name="2.0.0" author="Zly" time="2024-02-14T12:54:01Z">
+      <version name="2.0" author="Zly" time="2024-02-13T20:32:03Z">
+        <changelog><![CDATA[- Added GUI and many other features related to it :)]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/d814d4ec98c2e485e0af45ff0a9d99a9f3af14d0/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.0.0" author="Zly" time="2024-02-14T12:51:41Z">
         <changelog><![CDATA[- Added GUI and many other new features to the script.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/2501784feb1158e55548dd7b87ef89b107608556/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/5d1fa04808e6313e179f7c967eaea2e49cebec35/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.0.1" author="Zly" time="2024-02-14T12:54:01Z">
+        <changelog><![CDATA[- Added GUI and many other new features to the script.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/2501784feb1158e55548dd7b87ef89b107608556/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.0.2" author="Zly" time="2024-02-14T13:21:23Z">
         <changelog><![CDATA[- Added button for setting all Channels with the same source.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/7523805c27fbc243fcfe458a67bbac651435b775/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/7523805c27fbc243fcfe458a67bbac651435b775/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.1" author="Zly" time="2024-02-14T13:38:02Z">
         <changelog><![CDATA[- Added buttons for clearing samples.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/f02b0d63e3ddc91253f81f35bf48ee8d624d3006/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/f02b0d63e3ddc91253f81f35bf48ee8d624d3006/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.2" author="Zly" time="2024-02-14T18:27:43Z">
         <changelog><![CDATA[- Added Option for skipping sampless channels.
 - Added Drag and Drop for swapping samples.
 - Added Drag and Drop files to assign samples]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/da873c983b106330bc65e87d3cc6d0ba9b5c29b7/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/da873c983b106330bc65e87d3cc6d0ba9b5c29b7/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.3" author="Zly" time="2024-02-15T15:46:17Z">
         <changelog><![CDATA[- Added a feature for Channel 10 (drums channel): feature redistributes notes to their own tracks and renames tracks to their corresponding drum names that those pitches are mapped to by the MIDI standard.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/5d3d90b0c802761a130fd4a2cbef7a7048bff538/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/5d3d90b0c802761a130fd4a2cbef7a7048bff538/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.3.1" author="Zly" time="2024-02-15T22:39:07Z">
         <changelog><![CDATA[- Fixed crashing when Channels are filtered out in the MIDI Editor.
@@ -116,29 +124,33 @@
 - Added notes counter in the progress bars.
 - Tweaked style a bit.
 - Added hint about not entirely loaded MIDI.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/8e6d4696e8c3ce2e9ea4c93077ac15bcb0d933bf/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/8e6d4696e8c3ce2e9ea4c93077ac15bcb0d933bf/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.4" author="Zly" time="2024-02-16T22:52:25Z">
-        <changelog><![CDATA[- Improved algorithm so it's much faster.
+        <changelog><![CDATA[- Improved algorithm so it's much more faster.
 - Added option for Disabling Interactive Generation (improves performance)
 - Implemented Deps checker.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/fc9ed07dc73523aff50d5bcf50e46a382bf8da83/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/fc9ed07dc73523aff50d5bcf50e46a382bf8da83/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.4.1" author="Zly" time="2024-02-16T23:14:24Z">
         <changelog><![CDATA[- Forgot to add the redirection to the ReaPack's Website if the user doesn't have one lol.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/e06cac371a712456f45905f2bd8cb006e0bb3a2b/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/e06cac371a712456f45905f2bd8cb006e0bb3a2b/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.4.2" author="Zly" time="2024-02-17T00:02:49Z">
         <changelog><![CDATA[- Made the MIDI error message more obvious.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/4975d455166dd7a14d0046fb3c666b6680f9e431/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/4975d455166dd7a14d0046fb3c666b6680f9e431/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
-      <version name="2.4.2.1" author="Zly" time="2024-02-17T00:09:42Z">
+      <version name="2.4.2-a" author="Zly" time="2024-02-17T00:09:42Z">
         <changelog><![CDATA[- Visual version change to the appropriate one.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/61f7351453985eedb3e4969a9c9e3e237d32b368/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/61f7351453985eedb3e4969a9c9e3e237d32b368/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+      </version>
+      <version name="2.4.2.1" author="Zly" time="2024-02-17T00:13:08Z">
+        <changelog><![CDATA[- Visual version change to the appropriate one.]]></changelog>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/fcd2ae0740d64592f5de32c41f4b89712e77ee68/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
       <version name="2.4.3" author="Zly" time="2024-02-17T15:45:22Z">
         <changelog><![CDATA[-  Fixed missed formats variable in the object.]]></changelog>
-        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/NAGASHIZAR_reapack/raw/60198b6e742bd299dc1d3b5056a13d39c1f1f550/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
+        <source main="main" file="MIDI_To_Items/Zly_MIDI_To_Items.lua">https://github.com/Zly-u/zly_reapack/raw/60198b6e742bd299dc1d3b5056a13d39c1f1f550/MIDI/MIDI_To_Items/Zly_MIDI_To_Items.lua</source>
       </version>
     </reapack>
   </category>
@@ -251,7 +263,7 @@
         <source file="VideoAutoFlipper/VP_Presets/SolidColorFill.eel">https://github.com/Zly-u/zly_reapack/raw/b32aa529dfa5f804b94913b33f5be7d5cbe16927/Video/VideoAutoFlipper/VP_Presets/SolidColorFill.eel</source>
       </version>
       <version name="1.0.4" author="Zly" time="2024-04-08T18:11:54Z">
-        <changelog><![CDATA[- Kinda fixed the case when using Pooled Automation Items they would pool into other Automation Items because they used the same IDs. Sorry, I don't have motiovation to do it properly rn, it's kinda a pain in the ass.]]></changelog>
+        <changelog><![CDATA[- Kinda fixed the case when useing Pooled Automation Items they would pool into other Automation Items because they used the same IDs. Sorry, I don't have motiovation to do it properly rn, it's kinda a pain in the ass.]]></changelog>
         <source main="main" file="VideoAutoFlipper/Zly_VideoAutoFlipper.lua">https://github.com/Zly-u/zly_reapack/raw/9f035edff0e88ba24ca769db2bdfd119cc0310ab/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
         <source file="VideoAutoFlipper/images/img_jokeguy.png">https://github.com/Zly-u/zly_reapack/raw/9f035edff0e88ba24ca769db2bdfd119cc0310ab/Video/VideoAutoFlipper/images/img_jokeguy.png</source>
         <source file="VideoAutoFlipper/images/img_sigma.png">https://github.com/Zly-u/zly_reapack/raw/9f035edff0e88ba24ca769db2bdfd119cc0310ab/Video/VideoAutoFlipper/images/img_sigma.png</source>
@@ -451,6 +463,52 @@
         <source file="VideoAutoFlipper/VP_Presets/Scale.eel">https://github.com/Zly-u/zly_reapack/raw/ee339a1074cb2cde8056a010f11516a122f6a942/Video/VideoAutoFlipper/VP_Presets/Scale.eel</source>
         <source file="VideoAutoFlipper/VP_Presets/SolidColorFill.eel">https://github.com/Zly-u/zly_reapack/raw/ee339a1074cb2cde8056a010f11516a122f6a942/Video/VideoAutoFlipper/VP_Presets/SolidColorFill.eel</source>
       </version>
+      <version name="1.2.0" author="Zly" time="2025-07-23T13:09:21Z">
+        <changelog><![CDATA[- Changed some logic for helper functions to be more reliable.
+- Added two more helpers: "Extend Last Frame to Next" and "Delete Last Frame Fills".]]></changelog>
+        <source main="main" file="VideoAutoFlipper/Zly_VideoAutoFlipper.lua">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
+        <source file="VideoAutoFlipper/images/img_jokeguy.png">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/images/img_jokeguy.png</source>
+        <source file="VideoAutoFlipper/images/img_sigma.png">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/images/img_sigma.png</source>
+        <source file="VideoAutoFlipper/images/img_squid.png">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/images/img_squid.png</source>
+        <source file="VideoAutoFlipper/images/img_timeOfSigma.png">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/images/img_timeOfSigma.png</source>
+        <source file="VideoAutoFlipper/images/img_who.png">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/images/img_who.png</source>
+        <source file="VideoAutoFlipper/images/img_zenkuru.png">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/images/img_zenkuru.png</source>
+        <source file="VideoAutoFlipper/VP_Presets/AspectratioFixer.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/AspectratioFixer.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/BoxCrop.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/BoxCrop.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Chroma.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Chroma.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Cropper.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Cropper.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Flipper.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Flipper.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Null.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Null.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Opacity.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Opacity.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/PositionOffset.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/PositionOffset.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Pre-Compose.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Pre-Compose.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Rotate.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Rotate.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Scale.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/Scale.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/SolidColorFill.eel">https://github.com/Zly-u/zly_reapack/raw/032fe0b76882ace1f5e1cb580693ae8b53ea92e7/Video/VideoAutoFlipper/VP_Presets/SolidColorFill.eel</source>
+      </version>
+      <version name="1.2.1" author="Zly" time="2025-07-23T13:47:03Z">
+        <changelog><![CDATA[- Changed some logic for helper functions to be more reliable.
+- Added two more helpers: "Extend Last Frame to Next" and "Delete Last Frame Fills".]]></changelog>
+        <source main="main" file="VideoAutoFlipper/Zly_VideoAutoFlipper.lua">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/Zly_VideoAutoFlipper.lua</source>
+        <source file="VideoAutoFlipper/images/img_jokeguy.png">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/images/img_jokeguy.png</source>
+        <source file="VideoAutoFlipper/images/img_sigma.png">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/images/img_sigma.png</source>
+        <source file="VideoAutoFlipper/images/img_squid.png">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/images/img_squid.png</source>
+        <source file="VideoAutoFlipper/images/img_timeOfSigma.png">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/images/img_timeOfSigma.png</source>
+        <source file="VideoAutoFlipper/images/img_who.png">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/images/img_who.png</source>
+        <source file="VideoAutoFlipper/images/img_zenkuru.png">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/images/img_zenkuru.png</source>
+        <source file="VideoAutoFlipper/VP_Presets/AspectratioFixer.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/AspectratioFixer.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/BoxCrop.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/BoxCrop.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Chroma.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Chroma.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Cropper.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Cropper.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Flipper.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Flipper.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Null.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Null.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Opacity.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Opacity.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/PositionOffset.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/PositionOffset.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Pre-Compose.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Pre-Compose.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Rotate.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Rotate.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/Scale.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/Scale.eel</source>
+        <source file="VideoAutoFlipper/VP_Presets/SolidColorFill.eel">https://github.com/Zly-u/zly_reapack/raw/df243436edb26b0003763db726a588a1f8e74068/Video/VideoAutoFlipper/VP_Presets/SolidColorFill.eel</source>
+      </version>
     </reapack>
   </category>
   <metadata>
@@ -490,10 +548,5 @@ ReaImGui
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 reaper.JS_Dialog_BrowseForOpenFiles(...)} -> {\f1 JS.Dialog_BrowseForOpenFiles(...)}\sa180\sa180\par}
 }
 ]]></description>
-    <link rel="website" href="https://github.com/Zly-u/zly_reapack">Repo's GitHub</link>
-    <link rel="website" href="https://twitter.com/zly_u">Twitter</link>
-    <link rel="website" href="https://bsky.app/profile/zly.bsky.social">BluSky</link>
-    <link rel="website" href="https://www.youtube.com/@AmySupica">YT (Amy Supica)</link>
-    <link rel="donation" href="https://boosty.to/zly">Donate</link>
   </metadata>
 </index>
