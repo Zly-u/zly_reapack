@@ -2,7 +2,7 @@
 @metapackage
 @description Video Auto-Flipper [YTPMV]
 @author Zly
-@version 1.2.1
+@version 1.2.2
 @provides
 	[main] .\VideoAutoFlipper\Zly_VideoAutoFlipper.lua
 	.\VideoAutoFlipper\images\*.png
@@ -22,6 +22,5 @@
 	- Has a tab for Helper functions to assist with video animation and such.
 	- Has some brief FAQ page, just in case.
 @changelog
-	- Changed some logic for helper functions to be more reliable.
-	- Added two more helpers: "Extend Last Frame to Next" and "Delete Last Frame Fills".
+	- Fixed UI code for recent version of ReaImGui, thx @composition-cassidy
 --]]

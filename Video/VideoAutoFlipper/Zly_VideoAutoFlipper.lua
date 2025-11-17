@@ -460,7 +460,7 @@ end
 --[[===================================================]]--
 
 local GUI = {
-	version = "1.2.0",
+	version = "1.2.2",
 	name	= "Video Auto-Flipper",
 	
 	timer = 0.0,
@@ -555,7 +555,7 @@ local GUI = {
 		----
 		
 		
-		ImGui.SetNextWindowSize(self.ctx, 288, 375, ImGui.Cond_Always())
+		ImGui.SetNextWindowSize(self.ctx, 288, 415, ImGui.Cond_Always())
 		
 		local window_visible, window_open = select(1, ImGui.Begin(self.ctx, self.name.." "..self.version, true, self.window_flags))
 		
@@ -1015,13 +1015,11 @@ function GUI:TAB_Flipper()
 		local image_size = 94
 		local border_col = ImGui.GetStyleColor(self.ctx, ImGui.Col_Border())
 		ImGui.Image(
-				self.ctx,
-				self.UI_Data.selected_image_binary,
-				image_size, image_size-1, -- pixel perfect to the list
-				uv_min_x, uv_min_y,
-				uv_max_x, uv_max_y,
-				0xFFFFFFFF,
-				border_col
+			self.ctx,
+			self.UI_Data.selected_image_binary,
+			image_size, image_size-1, -- pixel perfect to the list
+			uv_min_x, uv_min_y,
+			uv_max_x, uv_max_y
 		)
 	end
 	
